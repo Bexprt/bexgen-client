@@ -2,6 +2,10 @@
 version: v2
 plugins:
   - remote: buf.build/protocolbuffers/go
-    out: ../pb
+    out: pb
     opt:
       - paths=source_relative
+
+inputs:
+  # Git repository
+  - git_repo: https://github.com/Bexprt/bexgen-proto.git

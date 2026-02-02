@@ -3,8 +3,7 @@ package topics
 import (
 	"reflect"
 
-	pbFile "github.com/bexprt/bexgen-client/pb/file"
-	pbUser "github.com/bexprt/bexgen-client/pb/user"
+	pbFile "github.com/bexprt/bexgen-client/pb/file/v1"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -43,5 +42,4 @@ func NewAlloc[T proto.Message]() T {
 // Predefined topics
 var (
 	FileUpload = New[*pbFile.FileUpload]("file.upload")
-	UserCreate = New[*pbUser.User]("user.created")
 )

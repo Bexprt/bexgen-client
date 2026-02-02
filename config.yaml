@@ -1,0 +1,28 @@
+messaging:
+  driver: kafka
+  options:
+    # Kafka-specific options
+    brokers:
+      - localhost:9092
+    security:
+      protocol: PLAINTEXT
+    producer:
+      linger_ms: 5 # time to wait before sending batch
+      batch_size: 32768 # max batch size in bytes
+      ack: 0 # acks policy ("all", "1", "0")
+      buffer_size: 100 # internal buffer for messages
+      retries: 3
+    consumer:
+      group_id: file-upload-group
+      auto_offset_reset: earliest
+      buffer_size: 10 # channel buffer size
+
+storage:
+  driver: s3
+  options:
+    # MinIO configuration
+    bucket: bextract
+    region: us-east-1
+    endpoint: http://localhost:9000
+    access_id: minioadmin
+    secret_key: minioadmin

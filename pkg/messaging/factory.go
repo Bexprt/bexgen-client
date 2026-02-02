@@ -3,72 +3,46 @@ package messaging
 import (
 	"context"
 	"fmt"
-	"os"
-	"sync"
 
 	"github.com/bexprt/bexgen-client/internal/messaging/kafka"
+	"github.com/bexprt/bexgen-client/pkg/config"
 	"github.com/bexprt/bexgen-client/pkg/messaging/types"
 
 	"google.golang.org/protobuf/proto"
-	"gopkg.in/yaml.v3"
 )
 
-const defaultConfigPath = "/etc/bextract/config.yaml"
-
-var driverCache = &sync.Map{}
-
-func normalizeDriver(d string) string {
-	if v, ok := driverCache.Load(d); ok {
-		return v.(string)
+func check(cfg *config.RootYAML) error {
+	if cfg.Storage == nil {
+		fmt.Errorf("Messaging config not found")
 	}
-	nd := d
-	driverCache.Store(d, nd)
-	return nd
+	if cfg.Storage.Driver == "" {
+		fmt.Errorf("Messaging.driver is required")
+	}
+	return nil
 }
 
-func LoadConfig(path string) (*types.FactoryConfig, error) {
-	if path == "" {
-		path = defaultConfigPath
-	}
-
-	file, err := os.ReadFile(path)
+func NewPublisher[T proto.Message](ctx context.Context, cfg *config.RootYAML) (types.Publisher[T], error) {
+	err := check(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read config file: %w", err)
+		return nil, err
 	}
-
-	var root types.RootYAML
-	if err := yaml.Unmarshal(file, &root); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal YAML: %w", err)
-	}
-
-	cfg := root.Messaging
-	if cfg.Driver == "" {
-		return nil, fmt.Errorf("messaging.driver is required")
-	}
-
-	normalizeDriver(cfg.Driver)
-
-	if cfg.Options == nil {
-		cfg.Options = make(map[string]any)
-	}
-
-	return &cfg, nil
-}
-
-func NewPublisher[T proto.Message](ctx context.Context, cfg *types.FactoryConfig) (types.Publisher[T], error) {
-	switch normalizeDriver(cfg.Driver) {
+	switch cfg.Messaging.Driver {
 	case "kafka":
-		return kafka.NewPublisher[T](ctx, cfg)
+		return kafka.NewPublisher[T](ctx, cfg.Messaging)
 	default:
-		return nil, fmt.Errorf("unsupported driver: %s", cfg.Driver)
+		return nil, fmt.Errorf("unsupported driver: %s", cfg.Messaging.Driver)
 	}
 }
 
-func NewConsumer[T proto.Message](ctx context.Context, cfg *types.FactoryConfig) (types.Consumer[T], error) {
-	switch normalizeDriver(cfg.Driver) {
+func NewConsumer[T proto.Message](ctx context.Context, cfg *config.RootYAML) (types.Consumer[T], error) {
+	err := check(cfg)
+	if err != nil {
+		return nil, err
+	}
+	switch cfg.Messaging.Driver {
 	case "kafka":
-		return kafka.NewConsumer[T](ctx, cfg)
+		return kafka.NewConsumer[T](ctx, cfg.Messaging)
 	default:
-		return nil, fmt.Errorf("unsupported driver: %s", cfg.Driver)
+		return nil, fmt.Errorf("unsupported driver: %s", cfg.Messaging.Driver)
 	}
 }

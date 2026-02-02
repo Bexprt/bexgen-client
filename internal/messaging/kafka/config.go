@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bexprt/bexgen-client/pkg/messaging/types"
+	"github.com/bexprt/bexgen-client/pkg/config"
 
 	kfk "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -46,7 +46,7 @@ type Config struct {
 	}
 }
 
-func LoadConfig(cfg *types.FactoryConfig) (*Config, error) {
+func LoadConfig(cfg *config.FactoryConfig) (*Config, error) {
 	options := cfg.Options
 
 	kCfg := &Config{}

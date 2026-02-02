@@ -39,7 +39,4 @@ func NewAlloc[T proto.Message]() T {
 	return reflect.New(reflect.TypeOf(zero).Elem()).Interface().(T)
 }
 
-// Predefined topics
-var (
-	FileUpload = New[*pbFile.FileUpload]("file.upload")
-)
+var FileUpload = New[*pbFile.FileUpload]("file.upload")

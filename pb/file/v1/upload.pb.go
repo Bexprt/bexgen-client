@@ -112,7 +112,7 @@ const file_file_v1_upload_proto_rawDesc = "" +
 	"size_bytes\x18\x03 \x01(\x03R\tsizeBytes\x12!\n" +
 	"\fcontent_type\x18\x04 \x01(\tR\vcontentType\x12\x1f\n" +
 	"\vuploaded_at\x18\x05 \x01(\x03R\n" +
-	"uploadedAtB\x1aZ\x18bextract-prototype/pb;pbb\x06proto3"
+	"uploadedAtB'Z%github.com/bexprt/bexgen-client/pb;pbb\x06proto3"
 
 var (
 	file_file_v1_upload_proto_rawDescOnce sync.Once

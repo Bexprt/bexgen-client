@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	cfg "github.com/bexprt/bexgen-client/pkg/config"
 	"github.com/bexprt/bexgen-client/pkg/storage/types"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -27,7 +28,7 @@ type S3Config struct {
 	SecretKey string `yaml:"secret_key" mapstructure:"secret_key"`
 }
 
-func NewClient(ctx context.Context, cfg *types.FactoryConfig) (types.ObjectStorage, error) {
+func NewClient(ctx context.Context, cfg *cfg.FactoryConfig) (types.ObjectStorage, error) {
 	// Parse S3 configuration from options
 	s3Cfg := &S3Config{}
 

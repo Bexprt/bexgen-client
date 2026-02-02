@@ -8,6 +8,7 @@ import (
 	kfk "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"google.golang.org/protobuf/proto"
 
+	"github.com/bexprt/bexgen-client/pkg/config"
 	"github.com/bexprt/bexgen-client/pkg/messaging/types"
 	"github.com/bexprt/bexgen-client/pkg/topics"
 )
@@ -20,7 +21,7 @@ type Consumer[T proto.Message] struct {
 	cancel   context.CancelFunc
 }
 
-func NewConsumer[T proto.Message](ctx context.Context, cfg *types.FactoryConfig) (*Consumer[T], error) {
+func NewConsumer[T proto.Message](ctx context.Context, cfg *config.FactoryConfig) (*Consumer[T], error) {
 	kCfg, err := LoadConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("kafka consumer: %w", err)

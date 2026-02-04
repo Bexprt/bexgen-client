@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	pbFile "github.com/bexprt/bexgen-client/pb/file/v1"
+	pbUser "github.com/bexprt/bexgen-client/pb/users/v1"
 
 	"google.golang.org/protobuf/proto"
 )
@@ -39,4 +40,7 @@ func NewAlloc[T proto.Message]() T {
 	return reflect.New(reflect.TypeOf(zero).Elem()).Interface().(T)
 }
 
-var FileUpload = New[*pbFile.FileUpload]("file.upload")
+var (
+	FileUpload = New[*pbFile.FileUpload]("file.upload")
+	User       = New[*pbUser.User]("user")
+)

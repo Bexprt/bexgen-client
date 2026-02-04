@@ -17,6 +17,8 @@ type FactoryConfig struct {
 type RootYAML struct {
 	Storage   *FactoryConfig `yaml:"storage"`
 	Messaging *FactoryConfig `yaml:"messaging"`
+	Search    *FactoryConfig `yaml:"search"`
+	Embedding *FactoryConfig `yaml:"embedding"`
 }
 
 const defaultConfigPath = "/etc/bexgen/config.yaml"

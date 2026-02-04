@@ -17,6 +17,7 @@ type Consumer[T proto.Message] struct {
 	consumer *kfk.Consumer
 	config   *Config
 	buffer   int
+	topic    string
 	ctx      context.Context
 	cancel   context.CancelFunc
 }
@@ -39,14 +40,14 @@ func NewConsumer[T proto.Message](ctx context.Context, cfg *config.FactoryConfig
 		consumer: cons,
 		config:   kCfg,
 		buffer:   kCfg.Consumer.Buffer,
+		topic:    topics.NameFromType[T](),
 		ctx:      cctx,
 		cancel:   cancel,
 	}, nil
 }
 
 func (c *Consumer[T]) Open() (<-chan *types.Message[T], error) {
-	topic := topics.NameFromType[T]()
-	if err := c.consumer.SubscribeTopics([]string{topic}, nil); err != nil {
+	if err := c.consumer.SubscribeTopics([]string{c.topic}, nil); err != nil {
 		return nil, fmt.Errorf("failed to subscribe: %w", err)
 	}
 

@@ -11,7 +11,7 @@ import (
 
 func NewObjectStorage(ctx context.Context, cfg *config.RootYAML) (types.ObjectStorage, error) {
 	if cfg.Storage == nil {
-		fmt.Errorf("Storage config not found")
+		return nil, fmt.Errorf("storage config not found")
 	}
 	if cfg.Storage.Driver == "" {
 		return nil, fmt.Errorf("storage.driver is required")

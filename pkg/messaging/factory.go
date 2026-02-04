@@ -13,10 +13,10 @@ import (
 
 func check(cfg *config.RootYAML) error {
 	if cfg.Storage == nil {
-		fmt.Errorf("Messaging config not found")
+		return fmt.Errorf("messaging config not found")
 	}
 	if cfg.Storage.Driver == "" {
-		fmt.Errorf("Messaging.driver is required")
+		return fmt.Errorf("messaging.driver is required")
 	}
 	return nil
 }

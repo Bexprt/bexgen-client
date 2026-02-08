@@ -26,3 +26,17 @@ storage:
     endpoint: http://localhost:9000
     access_id: minioadmin
     secret_key: minioadmin
+
+embedding:
+  driver: cohere
+  options:
+    modelId: cohere.embed-v4:0
+    dimension: 1024
+
+search:
+  driver: elasticsearch
+  options:
+    endpoint: http://localhost:9200
+    username:
+    password:
+    index: documents

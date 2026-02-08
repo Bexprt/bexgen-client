@@ -19,7 +19,7 @@ func check(cfg *config.RootYAML) error {
 	return nil
 }
 
-func NewVectorIndex(ctx context.Context, cfg *config.RootYAML) (searchtypes.VectorIndex, error) {
+func NewVectorIndex(ctx context.Context, cfg *config.RootYAML) (searchtypes.Index, error) {
 	if cfg.Search == nil {
 		return nil, fmt.Errorf("search config not found")
 	}
@@ -27,28 +27,12 @@ func NewVectorIndex(ctx context.Context, cfg *config.RootYAML) (searchtypes.Vect
 		return nil, fmt.Errorf("search.driver is required")
 	}
 
-	switch cfg.Storage.Driver {
+	switch cfg.Search.Driver {
 	case "opensearch":
 		return search.NewClient(ctx, cfg.Search)
-	case "elasicsearch":
+	case "elasticsearch":
 		return search.NewClient(ctx, cfg.Search)
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", cfg.Search.Driver)
-	}
-}
-
-func NewEmbedder(ctx context.Context, cfg *config.RootYAML) (searchtypes.Embedder, error) {
-	if cfg.Embedding == nil {
-		return nil, fmt.Errorf("embedding config not found")
-	}
-	if cfg.Embedding.Driver == "" {
-		return nil, fmt.Errorf("embedding.driver is required")
-	}
-
-	switch cfg.Embedding.Driver {
-	case "cohere":
-		return search.NewBedrockCohereEmbedder(ctx, cfg.Embedding)
-	default:
-		return nil, fmt.Errorf("unsupported driver: %s", cfg.Embedding.Driver)
 	}
 }

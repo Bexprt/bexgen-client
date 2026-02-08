@@ -5,6 +5,10 @@ plugins:
     out: pb
     opt:
       - paths=source_relative
+  - remote: buf.build/grpc/go
+    out: pb
+    opt:
+      - paths=source_relative
 
 inputs:
   # Git repository

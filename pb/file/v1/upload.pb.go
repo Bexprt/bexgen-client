@@ -23,12 +23,12 @@ const (
 
 type FileUpload struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileId        string                 `protobuf:"bytes,1,opt,name=file_id,json=fileId,proto3" json:"file_id,omitempty"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
 	FilePath      string                 `protobuf:"bytes,3,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
 	SizeBytes     int64                  `protobuf:"varint,4,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
 	ContentType   string                 `protobuf:"bytes,5,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	User          string                 `protobuf:"bytes,6,opt,name=user,proto3" json:"user,omitempty"`
+	UserEmail     string                 `protobuf:"bytes,6,opt,name=user_email,json=userEmail,proto3" json:"user_email,omitempty"`
 	UploadedAt    int64                  `protobuf:"varint,7,opt,name=uploaded_at,json=uploadedAt,proto3" json:"uploaded_at,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -64,9 +64,9 @@ func (*FileUpload) Descriptor() ([]byte, []int) {
 	return file_file_v1_upload_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *FileUpload) GetFileId() string {
+func (x *FileUpload) GetId() string {
 	if x != nil {
-		return x.FileId
+		return x.Id
 	}
 	return ""
 }
@@ -99,9 +99,9 @@ func (x *FileUpload) GetContentType() string {
 	return ""
 }
 
-func (x *FileUpload) GetUser() string {
+func (x *FileUpload) GetUserEmail() string {
 	if x != nil {
-		return x.User
+		return x.UserEmail
 	}
 	return ""
 }
@@ -117,16 +117,17 @@ var File_file_v1_upload_proto protoreflect.FileDescriptor
 
 const file_file_v1_upload_proto_rawDesc = "" +
 	"\n" +
-	"\x14file/v1/upload.proto\x12\afile.v1\"\xd5\x01\n" +
+	"\x14file/v1/upload.proto\x12\afile.v1\"\xd7\x01\n" +
 	"\n" +
-	"FileUpload\x12\x17\n" +
-	"\afile_id\x18\x01 \x01(\tR\x06fileId\x12\x1a\n" +
+	"FileUpload\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
 	"\tfile_path\x18\x03 \x01(\tR\bfilePath\x12\x1d\n" +
 	"\n" +
 	"size_bytes\x18\x04 \x01(\x03R\tsizeBytes\x12!\n" +
-	"\fcontent_type\x18\x05 \x01(\tR\vcontentType\x12\x12\n" +
-	"\x04user\x18\x06 \x01(\tR\x04user\x12\x1f\n" +
+	"\fcontent_type\x18\x05 \x01(\tR\vcontentType\x12\x1d\n" +
+	"\n" +
+	"user_email\x18\x06 \x01(\tR\tuserEmail\x12\x1f\n" +
 	"\vuploaded_at\x18\a \x01(\x03R\n" +
 	"uploadedAtB3Z1github.com/bexprt/bexgen-client/pb/file/v1;filev1b\x06proto3"
 

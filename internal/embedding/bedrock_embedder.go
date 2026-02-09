@@ -38,7 +38,7 @@ type BedrockCohereEmbedder struct {
 
 type CohereEmbedRequest struct {
 	InputType      EmbeddingInputType `json:"input_type"`
-	Texts          *[]string          `json:"texts,omitempty"`
+	Texts          []string           `json:"texts,omitempty"`
 	EmbeddingTypes []EmbeddingType    `json:"embedding_types,omitempty"`
 	OutputDim      int                `json:"output_dimension,omitempty"`
 	MaxTokens      int                `json:"max_tokens,omitempty"`
@@ -104,8 +104,8 @@ func (e *BedrockCohereEmbedder) BuildRequest(
 
 func (e *BedrockCohereEmbedder) Embed(
 	ctx context.Context,
-	texts *[]string,
-) (*[][]float32, error) {
+	texts []string,
+) ([][]float32, error) {
 	req := &CohereEmbedRequest{
 		InputType:      InputSearchDocument,
 		Texts:          texts,
@@ -132,7 +132,7 @@ func (e *BedrockCohereEmbedder) Embed(
 		return nil, fmt.Errorf("no embeddings returned from model")
 	}
 
-	return &response.Embeddings.Float, nil
+	return response.Embeddings.Float, nil
 }
 
 func (e *BedrockCohereEmbedder) Dimension() int {

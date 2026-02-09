@@ -121,24 +121,24 @@ func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Documen
 }
 
 // Delete removes documents from the OpenSearch index by IDs
-func (c *OpenSearchClient) Delete(ctx context.Context, ids *[]string) error {
+func (c *OpenSearchClient) Delete(ctx context.Context, ids []string) error {
 	// TODO: Implement delete logic using OpenSearch delete API
 	return fmt.Errorf("not implemented")
 }
 
 // VectorSearch performs a vector similarity search
-func (c *OpenSearchClient) VectorSearch(ctx context.Context, query *[]float32, opts *searchtypes.VectorSearchOptions) (*[]searchtypes.Result, error) {
+func (c *OpenSearchClient) VectorSearch(ctx context.Context, query []float32, opts *searchtypes.VectorSearchOptions) ([]searchtypes.Result, error) {
 	// TODO: Implement vector search logic using OpenSearch k-NN plugin
 	return nil, fmt.Errorf("not implemented")
 }
 
 func (c *OpenSearchClient) Search(
 	ctx context.Context,
-	query *string,
+	query string,
 	key string,
 	opts *searchtypes.SearchOptions,
-) (*[]searchtypes.Result, error) {
-	if query == nil || *query == "" {
+) ([]searchtypes.Result, error) {
+	if query == "" {
 		return nil, fmt.Errorf("query cannot be empty")
 	}
 
@@ -148,7 +148,7 @@ func (c *OpenSearchClient) Search(
 			Query: &types.Query{
 				Match: map[string]types.MatchQuery{
 					key: {
-						Query: *query,
+						Query: query,
 					},
 				},
 			},
@@ -204,7 +204,7 @@ func (c *OpenSearchClient) Search(
 		})
 	}
 
-	return &results, nil
+	return results, nil
 }
 
 // Close closes any resources (noop for OpenSearch client)

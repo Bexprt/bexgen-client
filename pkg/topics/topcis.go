@@ -43,4 +43,5 @@ func NewAlloc[T proto.Message]() T {
 var (
 	FileUpload = New[*pbFile.FileUpload]("file.upload")
 	User       = New[*pbUser.User]("user")
+	OcrResult  = New[*pbFile.OcrResult]("ocr.result")
 )

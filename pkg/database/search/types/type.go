@@ -56,7 +56,7 @@ type Index interface {
 
 	Delete(ctx context.Context, ids *[]string) error
 
-	Search(ctx context.Context, query *string, opts *SearchOptions) (*[]Result, error)
+	Search(ctx context.Context, query *string, key string, opts *SearchOptions) (*[]Result, error)
 
 	VectorSearch(ctx context.Context, query *[]float32, opts *VectorSearchOptions) (*[]Result, error)
 

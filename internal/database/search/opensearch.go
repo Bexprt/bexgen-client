@@ -101,7 +101,6 @@ func (c *OpenSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOp
 }
 
 func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Document) error {
-	// TODO: Implement upsert logic using OpenSearch bulk API
 	_, err := c.client.Index(c.index).
 		Request(docs).
 		Do(ctx)
@@ -112,7 +111,6 @@ func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Documen
 }
 
 func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Document) error {
-	// TODO: Implement upsert logic using OpenSearch bulk API
 	_, err := c.client.Index(c.index).
 		Request(docs).
 		Do(ctx)
@@ -137,6 +135,7 @@ func (c *OpenSearchClient) VectorSearch(ctx context.Context, query *[]float32, o
 func (c *OpenSearchClient) Search(
 	ctx context.Context,
 	query *string,
+	key string,
 	opts *searchtypes.SearchOptions,
 ) (*[]searchtypes.Result, error) {
 	if query == nil || *query == "" {
@@ -148,7 +147,7 @@ func (c *OpenSearchClient) Search(
 		Request(&search.Request{
 			Query: &types.Query{
 				Match: map[string]types.MatchQuery{
-					"content": {
+					key: {
 						Query: *query,
 					},
 				},

@@ -141,6 +141,66 @@ func (x *PerformOCRResponse) GetMetadata() map[string]string {
 	return nil
 }
 
+type OcrResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Filename      string                 `protobuf:"bytes,2,opt,name=filename,proto3" json:"filename,omitempty"`
+	FilePath      string                 `protobuf:"bytes,3,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OcrResult) Reset() {
+	*x = OcrResult{}
+	mi := &file_file_v1_ocr_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OcrResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OcrResult) ProtoMessage() {}
+
+func (x *OcrResult) ProtoReflect() protoreflect.Message {
+	mi := &file_file_v1_ocr_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OcrResult.ProtoReflect.Descriptor instead.
+func (*OcrResult) Descriptor() ([]byte, []int) {
+	return file_file_v1_ocr_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OcrResult) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OcrResult) GetFilename() string {
+	if x != nil {
+		return x.Filename
+	}
+	return ""
+}
+
+func (x *OcrResult) GetFilePath() string {
+	if x != nil {
+		return x.FilePath
+	}
+	return ""
+}
+
 var File_file_v1_ocr_proto protoreflect.FileDescriptor
 
 const file_file_v1_ocr_proto_rawDesc = "" +
@@ -157,7 +217,11 @@ const file_file_v1_ocr_proto_rawDesc = "" +
 	"\bmetadata\x18\x03 \x03(\v2).file.v1.PerformOCRResponse.MetadataEntryR\bmetadata\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x012S\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"T\n" +
+	"\tOcrResult\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
+	"\bfilename\x18\x02 \x01(\tR\bfilename\x12\x1b\n" +
+	"\tfile_path\x18\x03 \x01(\tR\bfilePath2S\n" +
 	"\n" +
 	"OCRService\x12E\n" +
 	"\n" +
@@ -175,14 +239,15 @@ func file_file_v1_ocr_proto_rawDescGZIP() []byte {
 	return file_file_v1_ocr_proto_rawDescData
 }
 
-var file_file_v1_ocr_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_file_v1_ocr_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_file_v1_ocr_proto_goTypes = []any{
 	(*PerformOCRRequest)(nil),  // 0: file.v1.PerformOCRRequest
 	(*PerformOCRResponse)(nil), // 1: file.v1.PerformOCRResponse
-	nil,                        // 2: file.v1.PerformOCRResponse.MetadataEntry
+	(*OcrResult)(nil),          // 2: file.v1.OcrResult
+	nil,                        // 3: file.v1.PerformOCRResponse.MetadataEntry
 }
 var file_file_v1_ocr_proto_depIdxs = []int32{
-	2, // 0: file.v1.PerformOCRResponse.metadata:type_name -> file.v1.PerformOCRResponse.MetadataEntry
+	3, // 0: file.v1.PerformOCRResponse.metadata:type_name -> file.v1.PerformOCRResponse.MetadataEntry
 	0, // 1: file.v1.OCRService.PerformOCR:input_type -> file.v1.PerformOCRRequest
 	1, // 2: file.v1.OCRService.PerformOCR:output_type -> file.v1.PerformOCRResponse
 	2, // [2:3] is the sub-list for method output_type
@@ -203,7 +268,7 @@ func file_file_v1_ocr_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_file_v1_ocr_proto_rawDesc), len(file_file_v1_ocr_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -17,12 +17,13 @@ type Consumer[T proto.Message] struct {
 	consumer *kfk.Consumer
 	config   *Config
 	buffer   int
-	topic    string
+	topic    topics.Topic[T]
+	Msg      proto.Message
 	ctx      context.Context
 	cancel   context.CancelFunc
 }
 
-func NewConsumer[T proto.Message](ctx context.Context, cfg *config.FactoryConfig) (*Consumer[T], error) {
+func NewConsumer[T proto.Message](ctx context.Context, cfg *config.FactoryConfig, topic topics.Topic[T]) (*Consumer[T], error) {
 	kCfg, err := LoadConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("kafka consumer: %w", err)
@@ -40,14 +41,14 @@ func NewConsumer[T proto.Message](ctx context.Context, cfg *config.FactoryConfig
 		consumer: cons,
 		config:   kCfg,
 		buffer:   kCfg.Consumer.Buffer,
-		topic:    topics.NameFromType[T](),
+		topic:    topic,
 		ctx:      cctx,
 		cancel:   cancel,
 	}, nil
 }
 
 func (c *Consumer[T]) Open() (<-chan *types.Message[T], error) {
-	if err := c.consumer.SubscribeTopics([]string{c.topic}, nil); err != nil {
+	if err := c.consumer.SubscribeTopics([]string{c.topic.Name}, nil); err != nil {
 		return nil, fmt.Errorf("failed to subscribe: %w", err)
 	}
 
@@ -75,7 +76,7 @@ func (c *Consumer[T]) Open() (<-chan *types.Message[T], error) {
 				}
 
 				key := string(m.Key)
-				value := topics.NewAlloc[T]()
+				value := c.topic.New()
 				if err := proto.Unmarshal(m.Value, value); err != nil {
 					fmt.Printf("unmarshal error: %v\n", err)
 					continue

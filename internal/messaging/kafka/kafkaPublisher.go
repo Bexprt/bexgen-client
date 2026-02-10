@@ -15,13 +15,13 @@ import (
 type Publisher[T proto.Message] struct {
 	producer *kfk.Producer
 	config   *Config
-	topic    string
+	topic    topics.Topic[T]
 	ctx      context.Context
 	cancel   context.CancelFunc
 	buffer   int
 }
 
-func NewPublisher[T proto.Message](ctx context.Context, cfg *config.FactoryConfig) (*Publisher[T], error) {
+func NewPublisher[T proto.Message](ctx context.Context, cfg *config.FactoryConfig, topic topics.Topic[T]) (*Publisher[T], error) {
 	kCfg, err := LoadConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("kafka publisher: %w", err)
@@ -38,7 +38,7 @@ func NewPublisher[T proto.Message](ctx context.Context, cfg *config.FactoryConfi
 	return &Publisher[T]{
 		producer: prod,
 		config:   kCfg,
-		topic:    topics.NameFromType[T](),
+		topic:    topic,
 		ctx:      cctx,
 		cancel:   cancel,
 		buffer:   kCfg.Producer.Buffer,
@@ -80,7 +80,7 @@ func (p *Publisher[T]) Open() (chan<- *types.Message[T], error) {
 				}
 				kmsg := &kfk.Message{
 					TopicPartition: kfk.TopicPartition{
-						Topic:     &p.topic,
+						Topic:     &p.topic.Name,
 						Partition: kfk.PartitionAny,
 					},
 					Key:   []byte(*m.Key),

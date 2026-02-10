@@ -11,15 +11,6 @@ import (
 	"github.com/bexprt/bexgen-client/pkg/embedding/types"
 )
 
-type EmbeddingInputType string
-
-const (
-	InputSearchDocument EmbeddingInputType = "search_document"
-	InputSearchQuery    EmbeddingInputType = "search_query"
-	InputClassification EmbeddingInputType = "classification"
-	InputClustering     EmbeddingInputType = "clustering"
-)
-
 type EmbeddingType string
 
 const (
@@ -37,12 +28,12 @@ type BedrockCohereEmbedder struct {
 }
 
 type CohereEmbedRequest struct {
-	InputType      EmbeddingInputType `json:"input_type"`
-	Texts          []string           `json:"texts,omitempty"`
-	EmbeddingTypes []EmbeddingType    `json:"embedding_types,omitempty"`
-	OutputDim      int                `json:"output_dimension,omitempty"`
-	MaxTokens      int                `json:"max_tokens,omitempty"`
-	Truncate       string             `json:"truncate,omitempty"`
+	InputType      types.EmbeddingInputType `json:"input_type"`
+	Texts          []string                 `json:"texts,omitempty"`
+	EmbeddingTypes []EmbeddingType          `json:"embedding_types,omitempty"`
+	OutputDim      int                      `json:"output_dimension,omitempty"`
+	MaxTokens      int                      `json:"max_tokens,omitempty"`
+	Truncate       string                   `json:"truncate,omitempty"`
 }
 
 type CohereEmbedResponse struct {
@@ -105,9 +96,10 @@ func (e *BedrockCohereEmbedder) BuildRequest(
 func (e *BedrockCohereEmbedder) Embed(
 	ctx context.Context,
 	texts []string,
+	embedType types.EmbeddingInputType,
 ) ([][]float32, error) {
 	req := &CohereEmbedRequest{
-		InputType:      InputSearchDocument,
+		InputType:      embedType,
 		Texts:          texts,
 		EmbeddingTypes: []EmbeddingType{EmbeddingFloat},
 		OutputDim:      e.dimension,

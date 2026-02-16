@@ -79,6 +79,7 @@ func (c *OpenSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOp
 	mappings := esdsl.NewTypeMapping().
 		AddProperty("id", esdsl.NewKeywordProperty()).
 		AddProperty("content", esdsl.NewTextProperty()).
+		AddProperty("summary", esdsl.NewTextProperty()).
 		AddProperty("embedding", esdsl.NewDenseVectorProperty().
 			Dims(1024).
 			Index(true).
@@ -101,7 +102,9 @@ func (c *OpenSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOp
 }
 
 func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Document) error {
-	_, err := c.client.Index(c.index).
+	_, err := c.client.
+		Index(c.index).
+		Id(docs.ID).
 		Request(docs).
 		Do(ctx)
 	if err != nil {
@@ -111,8 +114,9 @@ func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Documen
 }
 
 func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Document) error {
-	_, err := c.client.Index(c.index).
-		Request(docs).
+	_, err := c.client.
+		Update(c.index, docs.ID).
+		Doc(docs).
 		Do(ctx)
 	if err != nil {
 		return err
@@ -120,38 +124,96 @@ func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Documen
 	return nil
 }
 
-// Delete removes documents from the OpenSearch index by IDs
-func (c *OpenSearchClient) Delete(ctx context.Context, ids []string) error {
-	// TODO: Implement delete logic using OpenSearch delete API
-	return fmt.Errorf("not implemented")
+func (c *OpenSearchClient) Delete(ctx context.Context, id string) error {
+	_, err := c.client.
+		Delete(c.index, id).
+		Do(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-// VectorSearch performs a vector similarity search
-func (c *OpenSearchClient) VectorSearch(ctx context.Context, query []float32, opts *searchtypes.VectorSearchOptions) ([]searchtypes.Result, error) {
-	// TODO: Implement vector search logic using OpenSearch k-NN plugin
-	return nil, fmt.Errorf("not implemented")
+func (c *OpenSearchClient) GetByID(ctx context.Context, id string) (*searchtypes.Document, error) {
+	res, err := c.client.
+		Get(c.index, id).
+		Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !res.Found {
+		return nil, fmt.Errorf("document not found")
+	}
+
+	var doc searchtypes.Document
+	if err := json.Unmarshal(res.Source_, &doc); err != nil {
+		return nil, err
+	}
+
+	return &doc, nil
 }
 
-func (c *OpenSearchClient) Search(
+func (c *OpenSearchClient) VectorSearch(
 	ctx context.Context,
-	query string,
-	key string,
+	query []float32,
 	opts *searchtypes.SearchOptions,
 ) ([]searchtypes.Result, error) {
-	if query == "" {
-		return nil, fmt.Errorf("query cannot be empty")
+	if len(query) == 0 {
+		return nil, fmt.Errorf("vector query cannot be empty")
+	}
+
+	limit := 10
+	offset := 0
+	k := 10
+	numCandidates := 100
+
+	if opts != nil {
+		if opts.Limit > 0 {
+			limit = opts.Limit
+		}
+		if opts.Offset > 0 {
+			offset = opts.Offset
+		}
+		if opts.TopK > 0 {
+			k = opts.TopK
+			numCandidates = k * 20
+		}
+	}
+
+	var filters []types.Query
+
+	if opts != nil && opts.Filters != nil {
+		for field, value := range opts.Filters {
+			filters = append(filters, types.Query{
+				Term: map[string]types.TermQuery{
+					field: {Value: value},
+				},
+			})
+		}
+	}
+
+	knnQuery := esdsl.NewKnnQuery().
+		Field("embedding").
+		QueryVector(query...).
+		K(k).
+		NumCandidates(numCandidates)
+
+	finalQuery := &types.Query{
+		Bool: &types.BoolQuery{
+			Must: []types.Query{
+				*knnQuery.QueryCaster(),
+			},
+			Filter: filters,
+		},
 	}
 
 	res, err := c.client.Search().
 		Index(c.index).
 		Request(&search.Request{
-			Query: &types.Query{
-				Match: map[string]types.MatchQuery{
-					key: {
-						Query: query,
-					},
-				},
-			},
+			From:  &offset,
+			Size:  &limit,
+			Query: finalQuery,
 		}).
 		Do(ctx)
 	if err != nil {
@@ -162,21 +224,18 @@ func (c *OpenSearchClient) Search(
 
 	for _, hit := range res.Hits.Hits {
 
-		// Decode _source
 		var source map[string]any
 		if len(hit.Source_) > 0 {
 			if err := json.Unmarshal(hit.Source_, &source); err != nil {
-				return nil, fmt.Errorf("failed to unmarshal _source: %w", err)
+				return nil, err
 			}
 		}
 
-		// Extract content text
 		var text string
 		if v, ok := source["content"].(string); ok {
 			text = v
 		}
 
-		// Copy metadata (everything except content)
 		metadata := make(map[string]any)
 		for k, v := range source {
 			if k != "content" {
@@ -184,13 +243,11 @@ func (c *OpenSearchClient) Search(
 			}
 		}
 
-		// Score
 		var score float32
 		if hit.Score_ != nil {
 			score = float32(*hit.Score_)
 		}
 
-		// ID
 		var id string
 		if hit.Id_ != nil {
 			id = *hit.Id_
@@ -207,7 +264,106 @@ func (c *OpenSearchClient) Search(
 	return results, nil
 }
 
-// Close closes any resources (noop for OpenSearch client)
+func (c *OpenSearchClient) Search(
+	ctx context.Context,
+	query string,
+	key searchtypes.SearchFileds,
+	opts *searchtypes.SearchOptions,
+) ([]searchtypes.Result, error) {
+	if query == "" {
+		return nil, fmt.Errorf("query cannot be empty")
+	}
+
+	limit := 10
+	offset := 0
+
+	if opts != nil {
+		if opts.Limit > 0 {
+			limit = opts.Limit
+		}
+		if opts.Offset > 0 {
+			offset = opts.Offset
+		}
+	}
+
+	boolQuery := &types.BoolQuery{
+		Must: []types.Query{
+			{
+				Match: map[string]types.MatchQuery{
+					string(key): {Query: query},
+				},
+			},
+		},
+		Filter: []types.Query{},
+	}
+
+	if opts != nil && opts.Filters != nil {
+		for field, value := range opts.Filters {
+			boolQuery.Filter = append(boolQuery.Filter, types.Query{
+				Term: map[string]types.TermQuery{
+					field: {Value: value},
+				},
+			})
+		}
+	}
+
+	res, err := c.client.Search().
+		Index(c.index).
+		Request(&search.Request{
+			From: &offset,
+			Size: &limit,
+			Query: &types.Query{
+				Bool: boolQuery,
+			},
+		}).
+		Do(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	results := make([]searchtypes.Result, 0, len(res.Hits.Hits))
+
+	for _, hit := range res.Hits.Hits {
+		var source map[string]any
+		if len(hit.Source_) > 0 {
+			if err := json.Unmarshal(hit.Source_, &source); err != nil {
+				return nil, err
+			}
+		}
+
+		var text string
+		if v, ok := source["content"].(string); ok {
+			text = v
+		}
+
+		metadata := make(map[string]any)
+		for k, v := range source {
+			if k != "content" {
+				metadata[k] = v
+			}
+		}
+
+		var score float32
+		if hit.Score_ != nil {
+			score = float32(*hit.Score_)
+		}
+
+		var id string
+		if hit.Id_ != nil {
+			id = *hit.Id_
+		}
+
+		results = append(results, searchtypes.Result{
+			ID:       id,
+			Score:    score,
+			Text:     text,
+			Metadata: metadata,
+		})
+	}
+
+	return results, nil
+}
+
 func (c *OpenSearchClient) Close(ctx context.Context) error {
 	if err := c.client.Close(ctx); err != nil {
 		return err

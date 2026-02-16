@@ -17,24 +17,27 @@ const (
 	Dot       DistanceMetric = "dot"
 )
 
+type SearchFileds string
+
+const (
+	Content SearchFileds = "content"
+	Summary SearchFileds = "summary"
+)
+
 type Document struct {
-	ID       string         `json:"id"`
-	Text     string         `json:"content"`
-	Metadata map[string]any `json:"metadata"`
-	Vector   []float32      `json:"embedding"`
-}
-
-type VectorSearchOptions struct {
-	TopK     int
-	MinScore float32
-
-	Filter map[string]any
+	ID      string    `json:"id"`
+	Text    string    `json:"content"`
+	Summary string    `json:"summary"`
+	Vector  []float32 `json:"embedding"`
 }
 
 type SearchOptions struct {
-	TopK int
+	Limit    int
+	Offset   int
+	TopK     int
+	MinScore float32
 
-	Filter map[string]any
+	Filters map[string]any
 }
 
 type IndexOptions struct {
@@ -54,11 +57,13 @@ type Index interface {
 
 	Update(ctx context.Context, docs *Document) error
 
-	Delete(ctx context.Context, ids []string) error
+	Delete(ctx context.Context, id string) error
 
-	Search(ctx context.Context, query string, key string, opts *SearchOptions) ([]Result, error)
+	GetByID(ctx context.Context, id string) (*Document, error)
 
-	VectorSearch(ctx context.Context, query []float32, opts *VectorSearchOptions) ([]Result, error)
+	Search(ctx context.Context, query string, key SearchFileds, opts *SearchOptions) ([]Result, error)
+
+	VectorSearch(ctx context.Context, query []float32, opts *SearchOptions) ([]Result, error)
 
 	Close(ctx context.Context) error
 }

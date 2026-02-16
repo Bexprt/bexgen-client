@@ -78,12 +78,16 @@ func (p *Publisher[T]) Open() (chan<- *types.Message[T], error) {
 					fmt.Printf("error marshaling message: %v\n", err)
 					continue
 				}
+				key := ""
+				if m.Key != nil {
+					key = *m.Key
+				}
 				kmsg := &kfk.Message{
 					TopicPartition: kfk.TopicPartition{
 						Topic:     &p.topic.Name,
 						Partition: kfk.PartitionAny,
 					},
-					Key:   []byte(*m.Key),
+					Key:   []byte(key),
 					Value: val,
 				}
 				if err := p.producer.Produce(kmsg, delivery); err != nil {

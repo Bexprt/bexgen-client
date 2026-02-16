@@ -1,6 +1,16 @@
 package types
 
-import "context"
+import (
+	"context"
+)
+
+type Model interface {
+	Invoke(ctx context.Context, propmt string) (string, error)
+}
+
+type Rerank interface {
+	Rank(ctx context.Context, texts []string) ([]string, error)
+}
 
 type EmbeddingInputType string
 

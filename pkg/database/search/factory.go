@@ -9,17 +9,7 @@ import (
 	searchtypes "github.com/bexprt/bexgen-client/pkg/database/search/types"
 )
 
-func check(cfg *config.RootYAML) error {
-	if cfg.Storage == nil {
-		return fmt.Errorf("storage config not found")
-	}
-	if cfg.Storage.Driver == "" {
-		return fmt.Errorf("storage.driver is required")
-	}
-	return nil
-}
-
-func NewVectorIndex(ctx context.Context, cfg *config.RootYAML) (searchtypes.Index, error) {
+func NewClient(ctx context.Context, cfg *config.RootYAML) (searchtypes.Index, error) {
 	if cfg.Search == nil {
 		return nil, fmt.Errorf("search config not found")
 	}

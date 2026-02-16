@@ -1,4 +1,4 @@
-package embedding
+package cohereembedding
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 
 	awsCfg "github.com/aws/aws-sdk-go-v2/config"
 	bedrockruntime "github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/bexprt/bexgen-client/pkg/ai/types"
 	"github.com/bexprt/bexgen-client/pkg/config"
-	"github.com/bexprt/bexgen-client/pkg/embedding/types"
 )
 
 type EmbeddingType string
@@ -24,7 +24,7 @@ const (
 type BedrockCohereEmbedder struct {
 	client    *bedrockruntime.Client
 	dimension int
-	modelID   *string
+	modelID   string
 }
 
 type CohereEmbedRequest struct {
@@ -51,7 +51,7 @@ type CohereEmbedResponse struct {
 
 func NewBedrockCohereEmbedder(
 	ctx context.Context,
-	modelID *string,
+	modelID string,
 	cfg *config.FactoryConfig,
 ) (types.Embedder, error) {
 	acfg, err := awsCfg.LoadDefaultConfig(ctx)
@@ -86,7 +86,7 @@ func (e *BedrockCohereEmbedder) BuildRequest(
 	}
 
 	return &bedrockruntime.InvokeModelInput{
-		ModelId:     e.modelID,
+		ModelId:     &e.modelID,
 		ContentType: &contentType,
 		Accept:      &accept,
 		Body:        payload,

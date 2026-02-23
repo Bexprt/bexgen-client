@@ -1,0 +1,286 @@
+openapi: 3.1.0
+info:
+  title: Document Processing API
+  version: 1.0.0
+  description: |
+    API for uploading, searching, and managing processed documents
+    including vector search, status tracking, and audit logs.
+
+servers:
+  - url: https://api.example.com/v1
+
+paths:
+  /documents:
+    post:
+      summary: Upload a document
+      operationId: uploadDocument
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - user_email
+              properties:
+                file:
+                  type: string
+                  format: binary
+                user_email:
+                  type: string
+                  format: email
+      responses:
+        "201":
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentUploadResponse"
+
+  /documents/{id}:
+    get:
+      summary: Get document by ID
+      operationId: getDocumentById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Document details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "404":
+          description: Document not found
+
+  /documents/search:
+    get:
+      summary: Search documents (text search)
+      operationId: searchDocuments
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: user_email
+          in: query
+          required: false
+          schema:
+            type: string
+            format: email
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /documents/vector-search:
+    post:
+      summary: Vector similarity search
+      operationId: vectorSearchDocuments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VectorSearchRequest"
+      responses:
+        "200":
+          description: Vector search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /documents/{id}/status:
+    get:
+      summary: Get document processing status
+      operationId: getDocumentStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Document processing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentStatus"
+
+  /documents/{id}/audit:
+    get:
+      summary: Get document audit log
+      operationId: getDocumentAudit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuditResponse"
+
+components:
+  schemas:
+    DocumentUploadResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+        status:
+          type: string
+          example: uploaded
+        created_at:
+          type: string
+          format: date-time
+
+    Document:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+        filename:
+          type: string
+        content_type:
+          type: string
+        size_bytes:
+          type: integer
+        summary:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    SearchResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/SearchResult"
+
+    SearchResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        score:
+          type: number
+        snippet:
+          type: string
+        summary:
+          type: string
+
+    VectorSearchRequest:
+      type: object
+      required:
+        - vector
+      properties:
+        text:
+          type: string
+        user_email:
+          type: string
+          format: email
+        top_k:
+          type: integer
+          default: 5
+
+    DocumentStatus:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProcessingStep"
+
+    ProcessingStep:
+      type: object
+      properties:
+        step_name:
+          type: string
+          example: ocr
+        state:
+          type: string
+          enum: [pending, processing, completed, failed]
+        message:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+
+    AuditResponse:
+      type: object
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuditEvent"
+
+    AuditEvent:
+      type: object
+      properties:
+        event_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          example: document_uploaded
+        resource:
+          type: string
+        actor:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties: true

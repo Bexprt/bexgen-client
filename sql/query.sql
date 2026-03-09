@@ -252,3 +252,80 @@ WHERE resource = $1
   AND created_at < $3
 ORDER BY created_at DESC
 LIMIT $4;
+
+-- name: CreateCategory :one
+INSERT INTO categories (
+    name,
+    description,
+    embedding
+)
+VALUES (
+    $1,
+    $2,
+    $3
+)
+RETURNING *;
+
+-- name: ListCategories :many
+SELECT
+    id,
+    name,
+    embedding,
+    description,
+    created_at,
+    updated_at
+FROM categories
+ORDER BY name;
+
+-- name: GetCategoryByName :one
+SELECT *
+FROM categories
+WHERE name = $1
+LIMIT 1;
+
+-- name: CreateSubcategory :one
+INSERT INTO subcategories (
+    category_id,
+    name,
+    description,
+    embedding
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4
+)
+RETURNING *;
+
+-- name: ListSubcategories :many
+SELECT
+    s.id,
+    s.name,
+    c.name AS category,
+    s.description,
+    s.embedding,
+    s.created_at,
+    s.updated_at
+FROM subcategories s
+JOIN categories c
+ON s.category_id = c.id
+ORDER BY c.name, s.name;
+
+-- name: ListSubcategoriesByCategory :many
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.embedding
+FROM subcategories s
+WHERE s.category_id = $1
+ORDER BY s.name;
+
+-- name: DeleteCategory :exec
+DELETE FROM categories
+WHERE id = $1;
+
+-- name: DeleteSubcategory :exec
+DELETE FROM subcategories
+WHERE id = $1;

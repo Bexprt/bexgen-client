@@ -104,3 +104,28 @@ created_at DESC);
 -- JSONB GIN index for metadata search
 CREATE INDEX idx_audit_metadata
 ON audit_events USING GIN(metadata);
+-- =========================
+-- CLASSIFICATION
+-- =========================
+CREATE TABLE categories(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  embedding FLOAT4 []NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE TABLE subcategories(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES categories(id)
+ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  description TEXT,
+  embedding FLOAT4 []NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(category_id,
+  name)
+);
+CREATE INDEX idx_subcategories_category_id
+ON subcategories(category_id);

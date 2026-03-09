@@ -76,3 +76,31 @@ ON failed_messages(
 );
 CREATE INDEX idx_failed_doc
 ON failed_messages(document_id);
+-- =========================
+-- AUDIT EVENTS
+-- =========================
+CREATE TABLE audit_events(
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  resource_id UUID,
+  action TEXT NOT NULL,
+  resource TEXT NOT NULL,
+  actor TEXT,
+  -- user email or service name
+metadata JSONB,
+created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_audit_resource_id_created
+ON audit_events(resource,
+resource_id,
+created_at DESC);
+CREATE INDEX idx_audit_created_at
+ON audit_events(created_at DESC);
+CREATE INDEX idx_audit_action_created
+ON audit_events(action,
+created_at DESC);
+CREATE INDEX idx_audit_actor_created
+ON audit_events(actor,
+created_at DESC);
+-- JSONB GIN index for metadata search
+CREATE INDEX idx_audit_metadata
+ON audit_events USING GIN(metadata);

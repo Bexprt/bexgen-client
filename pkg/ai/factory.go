@@ -10,6 +10,7 @@ import (
 	"github.com/bexprt/bexgen-client/pkg/config"
 )
 
+// TODO: move all ai implemntaion to langchain
 func NewEmbedder(ctx context.Context, cfg *config.RootYAML) (types.Embedder, error) {
 	if cfg.Embedding == nil {
 		return nil, fmt.Errorf("embedding config not found")

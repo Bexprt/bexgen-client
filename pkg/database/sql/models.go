@@ -97,6 +97,16 @@ func (ns NullRetryState) Value() (driver.Value, error) {
 	return string(ns.RetryState), nil
 }
 
+type AuditEvent struct {
+	ID         pgtype.UUID        `json:"id"`
+	ResourceID pgtype.UUID        `json:"resource_id"`
+	Action     string             `json:"action"`
+	Resource   string             `json:"resource"`
+	Actor      pgtype.Text        `json:"actor"`
+	Metadata   []byte             `json:"metadata"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+}
+
 type Document struct {
 	ID             pgtype.UUID        `json:"id"`
 	Filename       pgtype.Text        `json:"filename"`

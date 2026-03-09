@@ -9,7 +9,7 @@ type Model interface {
 }
 
 type Rerank interface {
-	Rank(ctx context.Context, texts []string) ([]string, error)
+	Rerank(ctx context.Context, texts []string) ([]string, error)
 }
 
 type EmbeddingInputType string

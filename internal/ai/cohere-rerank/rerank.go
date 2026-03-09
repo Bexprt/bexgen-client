@@ -17,7 +17,7 @@ type CohereClient struct {
 	Temperature int
 }
 
-func new(ctx context.Context, modelID string, cfg *config.FactoryConfig) (types.Rerank, error) {
+func New(ctx context.Context, modelID string, cfg *config.FactoryConfig) (types.Rerank, error) {
 	acfg, err := awsCfg.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("aws config load failed: %w", err)
@@ -32,6 +32,6 @@ func new(ctx context.Context, modelID string, cfg *config.FactoryConfig) (types.
 }
 
 // TODO: implement Rank
-func (c CohereClient) Rank(ctx context.Context, texts []string) ([]string, error) {
+func (c CohereClient) Rerank(ctx context.Context, texts []string) ([]string, error) {
 	return []string{}, nil
 }

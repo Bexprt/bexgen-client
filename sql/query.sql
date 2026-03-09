@@ -158,3 +158,97 @@ SELECT
     COUNT(*) as total
 FROM failed_messages
 GROUP BY retry_state;
+
+
+-- =====================================================
+-- AUDIT EVENTS QUERIES
+-- =====================================================
+
+-- name: CreateAuditEvent :one
+INSERT INTO audit_events (
+  resource,
+  resource_id,
+  action,
+  actor,
+  metadata
+)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, created_at;
+
+
+-- name: GetAuditByResource :many
+SELECT *
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4;
+
+
+-- name: CountAuditByResource :one
+SELECT COUNT(*)
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2;
+
+
+-- name: GetAuditTimeline :many
+SELECT *
+FROM audit_events
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2;
+
+
+-- name: GetAuditByAction :many
+SELECT *
+FROM audit_events
+WHERE action = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+
+-- name: GetAuditByActor :many
+SELECT *
+FROM audit_events
+WHERE actor = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+
+-- name: GetAuditByTimeRange :many
+SELECT *
+FROM audit_events
+WHERE created_at BETWEEN $1 AND $2
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4;
+
+
+-- name: GetAuditByMetadata :many
+SELECT *
+FROM audit_events
+WHERE metadata @> $1::jsonb
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+
+-- name: GetAuditFiltered :many
+SELECT *
+FROM audit_events
+WHERE ($1::text IS NULL OR resource = $1)
+  AND ($2::uuid IS NULL OR resource_id = $2)
+  AND ($3::text IS NULL OR action = $3)
+  AND ($4::text IS NULL OR actor = $4)
+  AND ($5::timestamptz IS NULL OR created_at >= $5)
+  AND ($6::timestamptz IS NULL OR created_at <= $6)
+ORDER BY created_at DESC
+LIMIT $7 OFFSET $8;
+
+
+-- name: GetAuditCursor :many
+SELECT *
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2
+  AND created_at < $3
+ORDER BY created_at DESC
+LIMIT $4;

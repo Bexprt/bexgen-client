@@ -11,6 +11,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countAuditByResource = `-- name: CountAuditByResource :one
+SELECT COUNT(*)
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2
+`
+
+type CountAuditByResourceParams struct {
+	Resource   string      `json:"resource"`
+	ResourceID pgtype.UUID `json:"resource_id"`
+}
+
+func (q *Queries) CountAuditByResource(ctx context.Context, arg CountAuditByResourceParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countAuditByResource, arg.Resource, arg.ResourceID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countDocumentsByStepAndState = `-- name: CountDocumentsByStepAndState :many
 
 SELECT
@@ -81,6 +100,48 @@ func (q *Queries) CountFailedMessagesByState(ctx context.Context) ([]CountFailed
 		return nil, err
 	}
 	return items, nil
+}
+
+const createAuditEvent = `-- name: CreateAuditEvent :one
+
+INSERT INTO audit_events (
+  resource,
+  resource_id,
+  action,
+  actor,
+  metadata
+)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, created_at
+`
+
+type CreateAuditEventParams struct {
+	Resource   string      `json:"resource"`
+	ResourceID pgtype.UUID `json:"resource_id"`
+	Action     string      `json:"action"`
+	Actor      pgtype.Text `json:"actor"`
+	Metadata   []byte      `json:"metadata"`
+}
+
+type CreateAuditEventRow struct {
+	ID        pgtype.UUID        `json:"id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+// =====================================================
+// AUDIT EVENTS QUERIES
+// =====================================================
+func (q *Queries) CreateAuditEvent(ctx context.Context, arg CreateAuditEventParams) (CreateAuditEventRow, error) {
+	row := q.db.QueryRow(ctx, createAuditEvent,
+		arg.Resource,
+		arg.ResourceID,
+		arg.Action,
+		arg.Actor,
+		arg.Metadata,
+	)
+	var i CreateAuditEventRow
+	err := row.Scan(&i.ID, &i.CreatedAt)
+	return i, err
 }
 
 const createDocument = `-- name: CreateDocument :one
@@ -156,6 +217,380 @@ ON CONFLICT (name) DO NOTHING
 func (q *Queries) EnsureProcessingStep(ctx context.Context, name string) error {
 	_, err := q.db.Exec(ctx, ensureProcessingStep, name)
 	return err
+}
+
+const getAuditByAction = `-- name: GetAuditByAction :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE action = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetAuditByActionParams struct {
+	Action string `json:"action"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+func (q *Queries) GetAuditByAction(ctx context.Context, arg GetAuditByActionParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditByAction, arg.Action, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditByActor = `-- name: GetAuditByActor :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE actor = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetAuditByActorParams struct {
+	Actor  pgtype.Text `json:"actor"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) GetAuditByActor(ctx context.Context, arg GetAuditByActorParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditByActor, arg.Actor, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditByMetadata = `-- name: GetAuditByMetadata :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE metadata @> $1::jsonb
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3
+`
+
+type GetAuditByMetadataParams struct {
+	Column1 []byte `json:"column_1"`
+	Limit   int32  `json:"limit"`
+	Offset  int32  `json:"offset"`
+}
+
+func (q *Queries) GetAuditByMetadata(ctx context.Context, arg GetAuditByMetadataParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditByMetadata, arg.Column1, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditByResource = `-- name: GetAuditByResource :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type GetAuditByResourceParams struct {
+	Resource   string      `json:"resource"`
+	ResourceID pgtype.UUID `json:"resource_id"`
+	Limit      int32       `json:"limit"`
+	Offset     int32       `json:"offset"`
+}
+
+func (q *Queries) GetAuditByResource(ctx context.Context, arg GetAuditByResourceParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditByResource,
+		arg.Resource,
+		arg.ResourceID,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditByTimeRange = `-- name: GetAuditByTimeRange :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE created_at BETWEEN $1 AND $2
+ORDER BY created_at DESC
+LIMIT $3 OFFSET $4
+`
+
+type GetAuditByTimeRangeParams struct {
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+	Limit       int32              `json:"limit"`
+	Offset      int32              `json:"offset"`
+}
+
+func (q *Queries) GetAuditByTimeRange(ctx context.Context, arg GetAuditByTimeRangeParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditByTimeRange,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditCursor = `-- name: GetAuditCursor :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE resource = $1
+  AND resource_id = $2
+  AND created_at < $3
+ORDER BY created_at DESC
+LIMIT $4
+`
+
+type GetAuditCursorParams struct {
+	Resource   string             `json:"resource"`
+	ResourceID pgtype.UUID        `json:"resource_id"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	Limit      int32              `json:"limit"`
+}
+
+func (q *Queries) GetAuditCursor(ctx context.Context, arg GetAuditCursorParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditCursor,
+		arg.Resource,
+		arg.ResourceID,
+		arg.CreatedAt,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditFiltered = `-- name: GetAuditFiltered :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+WHERE ($1::text IS NULL OR resource = $1)
+  AND ($2::uuid IS NULL OR resource_id = $2)
+  AND ($3::text IS NULL OR action = $3)
+  AND ($4::text IS NULL OR actor = $4)
+  AND ($5::timestamptz IS NULL OR created_at >= $5)
+  AND ($6::timestamptz IS NULL OR created_at <= $6)
+ORDER BY created_at DESC
+LIMIT $7 OFFSET $8
+`
+
+type GetAuditFilteredParams struct {
+	Column1 string             `json:"column_1"`
+	Column2 pgtype.UUID        `json:"column_2"`
+	Column3 string             `json:"column_3"`
+	Column4 string             `json:"column_4"`
+	Column5 pgtype.Timestamptz `json:"column_5"`
+	Column6 pgtype.Timestamptz `json:"column_6"`
+	Limit   int32              `json:"limit"`
+	Offset  int32              `json:"offset"`
+}
+
+func (q *Queries) GetAuditFiltered(ctx context.Context, arg GetAuditFilteredParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditFiltered,
+		arg.Column1,
+		arg.Column2,
+		arg.Column3,
+		arg.Column4,
+		arg.Column5,
+		arg.Column6,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAuditTimeline = `-- name: GetAuditTimeline :many
+SELECT id, resource_id, action, resource, actor, metadata, created_at
+FROM audit_events
+ORDER BY created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type GetAuditTimelineParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) GetAuditTimeline(ctx context.Context, arg GetAuditTimelineParams) ([]AuditEvent, error) {
+	rows, err := q.db.Query(ctx, getAuditTimeline, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AuditEvent
+	for rows.Next() {
+		var i AuditEvent
+		if err := rows.Scan(
+			&i.ID,
+			&i.ResourceID,
+			&i.Action,
+			&i.Resource,
+			&i.Actor,
+			&i.Metadata,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getDocumentByID = `-- name: GetDocumentByID :one

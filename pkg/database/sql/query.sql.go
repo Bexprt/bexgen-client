@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/pgvector/pgvector-go"
 )
 
 const countAuditByResource = `-- name: CountAuditByResource :one
@@ -144,6 +145,40 @@ func (q *Queries) CreateAuditEvent(ctx context.Context, arg CreateAuditEventPara
 	return i, err
 }
 
+const createCategory = `-- name: CreateCategory :one
+INSERT INTO categories (
+    name,
+    description,
+    embedding
+)
+VALUES (
+    $1,
+    $2,
+    $3
+)
+RETURNING id, name, embedding, description, created_at, updated_at
+`
+
+type CreateCategoryParams struct {
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	Embedding   []float32   `json:"embedding"`
+}
+
+func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
+	row := q.db.QueryRow(ctx, createCategory, arg.Name, arg.Description, arg.Embedding)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Embedding,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createDocument = `-- name: CreateDocument :one
 
 INSERT INTO documents (
@@ -185,6 +220,56 @@ func (q *Queries) CreateDocument(ctx context.Context, arg CreateDocumentParams) 
 	return i, err
 }
 
+const createMetadata = `-- name: CreateMetadata :one
+INSERT INTO metadata (
+    site_id,
+    document_type,
+    confidence,
+    document_date,
+    portfolio_type,
+    document_amount,
+    licensed_entity,
+    licensing_authority,
+    document_folder,
+    notes
+)
+VALUES (
+    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+)
+RETURNING id
+`
+
+type CreateMetadataParams struct {
+	SiteID             pgtype.Text   `json:"site_id"`
+	DocumentType       pgtype.Text   `json:"document_type"`
+	Confidence         pgtype.Float8 `json:"confidence"`
+	DocumentDate       pgtype.Date   `json:"document_date"`
+	PortfolioType      pgtype.Text   `json:"portfolio_type"`
+	DocumentAmount     pgtype.Float8 `json:"document_amount"`
+	LicensedEntity     pgtype.Text   `json:"licensed_entity"`
+	LicensingAuthority pgtype.Text   `json:"licensing_authority"`
+	DocumentFolder     pgtype.Text   `json:"document_folder"`
+	Notes              pgtype.Text   `json:"notes"`
+}
+
+func (q *Queries) CreateMetadata(ctx context.Context, arg CreateMetadataParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createMetadata,
+		arg.SiteID,
+		arg.DocumentType,
+		arg.Confidence,
+		arg.DocumentDate,
+		arg.PortfolioType,
+		arg.DocumentAmount,
+		arg.LicensedEntity,
+		arg.LicensingAuthority,
+		arg.DocumentFolder,
+		arg.Notes,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
 const createProcessingStep = `-- name: CreateProcessingStep :exec
 
 INSERT INTO processing_steps (
@@ -205,6 +290,227 @@ type CreateProcessingStepParams struct {
 // =====================================
 func (q *Queries) CreateProcessingStep(ctx context.Context, arg CreateProcessingStepParams) error {
 	_, err := q.db.Exec(ctx, createProcessingStep, arg.Name, arg.Description)
+	return err
+}
+
+const createSite = `-- name: CreateSite :one
+
+INSERT INTO sites (
+    pk,
+    embedding_landlord,
+    embedding_site_address,
+    embedding_landlord_address,
+    timestamp,
+    site_code,
+    portfolio_type,
+    channel,
+    use_type,
+    name,
+    status,
+    sprint_cascade_id,
+    address,
+    address2,
+    city,
+    state,
+    zip,
+    county,
+    site_status,
+    site_type,
+    site_class,
+    build_status,
+    landlord,
+    lease_address_2,
+    lease_city,
+    lease_state,
+    lease_zip,
+    lease_county,
+    lease_vendor,
+    lease_vendor_role,
+    lease_vendor_address,
+    lease_vendor_address2,
+    lease_vendor_city,
+    lease_vendor_state,
+    lease_vendor_zip,
+    structure_vendor,
+    structure_vendor_role,
+    ground_vendor,
+    ground_vendor_role,
+    latitude,
+    longitude,
+    sap,
+    business_license_ids,
+    landlord_reference_id
+)
+VALUES (
+    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,
+    $19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,
+    $35,$36,$37,$38,$39,$40,$41,$42,$43,$44
+)
+RETURNING id
+`
+
+type CreateSiteParams struct {
+	Pk                       pgtype.Text        `json:"pk"`
+	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
+	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
+	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Timestamp                pgtype.Timestamptz `json:"timestamp"`
+	SiteCode                 pgtype.Text        `json:"site_code"`
+	PortfolioType            pgtype.Text        `json:"portfolio_type"`
+	Channel                  pgtype.Text        `json:"channel"`
+	UseType                  pgtype.Text        `json:"use_type"`
+	Name                     pgtype.Text        `json:"name"`
+	Status                   pgtype.Text        `json:"status"`
+	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
+	Address                  pgtype.Text        `json:"address"`
+	Address2                 pgtype.Text        `json:"address2"`
+	City                     pgtype.Text        `json:"city"`
+	State                    pgtype.Text        `json:"state"`
+	Zip                      pgtype.Text        `json:"zip"`
+	County                   pgtype.Text        `json:"county"`
+	SiteStatus               pgtype.Text        `json:"site_status"`
+	SiteType                 pgtype.Text        `json:"site_type"`
+	SiteClass                pgtype.Text        `json:"site_class"`
+	BuildStatus              pgtype.Text        `json:"build_status"`
+	Landlord                 pgtype.Text        `json:"landlord"`
+	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
+	LeaseCity                pgtype.Text        `json:"lease_city"`
+	LeaseState               pgtype.Text        `json:"lease_state"`
+	LeaseZip                 pgtype.Text        `json:"lease_zip"`
+	LeaseCounty              pgtype.Text        `json:"lease_county"`
+	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
+	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
+	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
+	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
+	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
+	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
+	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
+	StructureVendor          pgtype.Text        `json:"structure_vendor"`
+	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
+	GroundVendor             pgtype.Text        `json:"ground_vendor"`
+	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
+	Latitude                 pgtype.Float8      `json:"latitude"`
+	Longitude                pgtype.Float8      `json:"longitude"`
+	Sap                      pgtype.Text        `json:"sap"`
+	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
+	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+}
+
+// =========================================
+// INSERT
+// =========================================
+func (q *Queries) CreateSite(ctx context.Context, arg CreateSiteParams) (int32, error) {
+	row := q.db.QueryRow(ctx, createSite,
+		arg.Pk,
+		arg.EmbeddingLandlord,
+		arg.EmbeddingSiteAddress,
+		arg.EmbeddingLandlordAddress,
+		arg.Timestamp,
+		arg.SiteCode,
+		arg.PortfolioType,
+		arg.Channel,
+		arg.UseType,
+		arg.Name,
+		arg.Status,
+		arg.SprintCascadeID,
+		arg.Address,
+		arg.Address2,
+		arg.City,
+		arg.State,
+		arg.Zip,
+		arg.County,
+		arg.SiteStatus,
+		arg.SiteType,
+		arg.SiteClass,
+		arg.BuildStatus,
+		arg.Landlord,
+		arg.LeaseAddress2,
+		arg.LeaseCity,
+		arg.LeaseState,
+		arg.LeaseZip,
+		arg.LeaseCounty,
+		arg.LeaseVendor,
+		arg.LeaseVendorRole,
+		arg.LeaseVendorAddress,
+		arg.LeaseVendorAddress2,
+		arg.LeaseVendorCity,
+		arg.LeaseVendorState,
+		arg.LeaseVendorZip,
+		arg.StructureVendor,
+		arg.StructureVendorRole,
+		arg.GroundVendor,
+		arg.GroundVendorRole,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Sap,
+		arg.BusinessLicenseIds,
+		arg.LandlordReferenceID,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
+}
+
+const createSubcategory = `-- name: CreateSubcategory :one
+INSERT INTO subcategories (
+    category_id,
+    name,
+    description,
+    embedding
+)
+VALUES (
+    $1,
+    $2,
+    $3,
+    $4
+)
+RETURNING id, category_id, name, description, embedding, created_at, updated_at
+`
+
+type CreateSubcategoryParams struct {
+	CategoryID  pgtype.UUID `json:"category_id"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	Embedding   []float32   `json:"embedding"`
+}
+
+func (q *Queries) CreateSubcategory(ctx context.Context, arg CreateSubcategoryParams) (Subcategory, error) {
+	row := q.db.QueryRow(ctx, createSubcategory,
+		arg.CategoryID,
+		arg.Name,
+		arg.Description,
+		arg.Embedding,
+	)
+	var i Subcategory
+	err := row.Scan(
+		&i.ID,
+		&i.CategoryID,
+		&i.Name,
+		&i.Description,
+		&i.Embedding,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteCategory = `-- name: DeleteCategory :exec
+DELETE FROM categories
+WHERE id = $1
+`
+
+func (q *Queries) DeleteCategory(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteCategory, id)
+	return err
+}
+
+const deleteSubcategory = `-- name: DeleteSubcategory :exec
+DELETE FROM subcategories
+WHERE id = $1
+`
+
+func (q *Queries) DeleteSubcategory(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSubcategory, id)
 	return err
 }
 
@@ -593,6 +899,27 @@ func (q *Queries) GetAuditTimeline(ctx context.Context, arg GetAuditTimelinePara
 	return items, nil
 }
 
+const getCategoryByName = `-- name: GetCategoryByName :one
+SELECT id, name, embedding, description, created_at, updated_at
+FROM categories
+WHERE name = $1
+LIMIT 1
+`
+
+func (q *Queries) GetCategoryByName(ctx context.Context, name string) (Category, error) {
+	row := q.db.QueryRow(ctx, getCategoryByName, name)
+	var i Category
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Embedding,
+		&i.Description,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getDocumentByID = `-- name: GetDocumentByID :one
 SELECT id, filename, filepath, classification, created_at, updated_at
 FROM documents
@@ -693,6 +1020,145 @@ func (q *Queries) GetDocumentsByStepAndState(ctx context.Context, arg GetDocumen
 	return items, nil
 }
 
+const getMetadataByDocumentType = `-- name: GetMetadataByDocumentType :many
+SELECT id, site_id, document_type, confidence, document_date, portfolio_type, document_amount, licensed_entity, licensing_authority, document_folder, notes, created_at FROM metadata
+WHERE document_type = $1
+`
+
+func (q *Queries) GetMetadataByDocumentType(ctx context.Context, documentType pgtype.Text) ([]Metadata, error) {
+	rows, err := q.db.Query(ctx, getMetadataByDocumentType, documentType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Metadata
+	for rows.Next() {
+		var i Metadata
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.DocumentType,
+			&i.Confidence,
+			&i.DocumentDate,
+			&i.PortfolioType,
+			&i.DocumentAmount,
+			&i.LicensedEntity,
+			&i.LicensingAuthority,
+			&i.DocumentFolder,
+			&i.Notes,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMetadataByID = `-- name: GetMetadataByID :one
+SELECT id, site_id, document_type, confidence, document_date, portfolio_type, document_amount, licensed_entity, licensing_authority, document_folder, notes, created_at FROM metadata
+WHERE id = $1
+`
+
+func (q *Queries) GetMetadataByID(ctx context.Context, id int32) (Metadata, error) {
+	row := q.db.QueryRow(ctx, getMetadataByID, id)
+	var i Metadata
+	err := row.Scan(
+		&i.ID,
+		&i.SiteID,
+		&i.DocumentType,
+		&i.Confidence,
+		&i.DocumentDate,
+		&i.PortfolioType,
+		&i.DocumentAmount,
+		&i.LicensedEntity,
+		&i.LicensingAuthority,
+		&i.DocumentFolder,
+		&i.Notes,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getMetadataByPortfolioType = `-- name: GetMetadataByPortfolioType :many
+SELECT id, site_id, document_type, confidence, document_date, portfolio_type, document_amount, licensed_entity, licensing_authority, document_folder, notes, created_at FROM metadata
+WHERE portfolio_type = $1
+`
+
+func (q *Queries) GetMetadataByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]Metadata, error) {
+	rows, err := q.db.Query(ctx, getMetadataByPortfolioType, portfolioType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Metadata
+	for rows.Next() {
+		var i Metadata
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.DocumentType,
+			&i.Confidence,
+			&i.DocumentDate,
+			&i.PortfolioType,
+			&i.DocumentAmount,
+			&i.LicensedEntity,
+			&i.LicensingAuthority,
+			&i.DocumentFolder,
+			&i.Notes,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMetadataBySiteID = `-- name: GetMetadataBySiteID :many
+SELECT id, site_id, document_type, confidence, document_date, portfolio_type, document_amount, licensed_entity, licensing_authority, document_folder, notes, created_at FROM metadata
+WHERE site_id = $1
+`
+
+func (q *Queries) GetMetadataBySiteID(ctx context.Context, siteID pgtype.Text) ([]Metadata, error) {
+	rows, err := q.db.Query(ctx, getMetadataBySiteID, siteID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Metadata
+	for rows.Next() {
+		var i Metadata
+		if err := rows.Scan(
+			&i.ID,
+			&i.SiteID,
+			&i.DocumentType,
+			&i.Confidence,
+			&i.DocumentDate,
+			&i.PortfolioType,
+			&i.DocumentAmount,
+			&i.LicensedEntity,
+			&i.LicensingAuthority,
+			&i.DocumentFolder,
+			&i.Notes,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingFailedMessages = `-- name: GetPendingFailedMessages :many
 SELECT id, document_id, topic_name, protobuf_payload, headers, error_message, retry_count, retry_state, created_at, last_retry_at
 FROM failed_messages
@@ -743,6 +1209,429 @@ func (q *Queries) GetProcessingStep(ctx context.Context, name string) (Processin
 	var i ProcessingStep
 	err := row.Scan(&i.Name, &i.Description, &i.CreatedAt)
 	return i, err
+}
+
+const getSiteByPK = `-- name: GetSiteByPK :one
+
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE pk = $1
+`
+
+type GetSiteByPKRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+// =========================================
+// READ QUERIES (ONLY REQUESTED FIELDS)
+// =========================================
+func (q *Queries) GetSiteByPK(ctx context.Context, pk pgtype.Text) (GetSiteByPKRow, error) {
+	row := q.db.QueryRow(ctx, getSiteByPK, pk)
+	var i GetSiteByPKRow
+	err := row.Scan(
+		&i.Pk,
+		&i.SiteCode,
+		&i.Address,
+		&i.Zip,
+		&i.State,
+		&i.PortfolioType,
+		&i.Sap,
+		&i.Landlord,
+	)
+	return i, err
+}
+
+const getSitesByAddress = `-- name: GetSitesByAddress :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE address = $1
+`
+
+type GetSitesByAddressRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesByAddress(ctx context.Context, address pgtype.Text) ([]GetSitesByAddressRow, error) {
+	rows, err := q.db.Query(ctx, getSitesByAddress, address)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesByAddressRow
+	for rows.Next() {
+		var i GetSitesByAddressRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesByLandlord = `-- name: GetSitesByLandlord :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE landlord = $1
+`
+
+type GetSitesByLandlordRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesByLandlord(ctx context.Context, landlord pgtype.Text) ([]GetSitesByLandlordRow, error) {
+	rows, err := q.db.Query(ctx, getSitesByLandlord, landlord)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesByLandlordRow
+	for rows.Next() {
+		var i GetSitesByLandlordRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesByPortfolioType = `-- name: GetSitesByPortfolioType :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE portfolio_type = $1
+`
+
+type GetSitesByPortfolioTypeRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]GetSitesByPortfolioTypeRow, error) {
+	rows, err := q.db.Query(ctx, getSitesByPortfolioType, portfolioType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesByPortfolioTypeRow
+	for rows.Next() {
+		var i GetSitesByPortfolioTypeRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesBySAP = `-- name: GetSitesBySAP :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE sap = $1
+`
+
+type GetSitesBySAPRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesBySAP(ctx context.Context, sap pgtype.Text) ([]GetSitesBySAPRow, error) {
+	rows, err := q.db.Query(ctx, getSitesBySAP, sap)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesBySAPRow
+	for rows.Next() {
+		var i GetSitesBySAPRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesBySiteCode = `-- name: GetSitesBySiteCode :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE site_code = $1
+`
+
+type GetSitesBySiteCodeRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesBySiteCode(ctx context.Context, siteCode pgtype.Text) ([]GetSitesBySiteCodeRow, error) {
+	rows, err := q.db.Query(ctx, getSitesBySiteCode, siteCode)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesBySiteCodeRow
+	for rows.Next() {
+		var i GetSitesBySiteCodeRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesByState = `-- name: GetSitesByState :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE state = $1
+`
+
+type GetSitesByStateRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesByState(ctx context.Context, state pgtype.Text) ([]GetSitesByStateRow, error) {
+	rows, err := q.db.Query(ctx, getSitesByState, state)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesByStateRow
+	for rows.Next() {
+		var i GetSitesByStateRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSitesByZip = `-- name: GetSitesByZip :many
+SELECT
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord
+FROM sites
+WHERE zip = $1
+`
+
+type GetSitesByZipRow struct {
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+}
+
+func (q *Queries) GetSitesByZip(ctx context.Context, zip pgtype.Text) ([]GetSitesByZipRow, error) {
+	rows, err := q.db.Query(ctx, getSitesByZip, zip)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSitesByZipRow
+	for rows.Next() {
+		var i GetSitesByZipRow
+		if err := rows.Scan(
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const incrementRetryCount = `-- name: IncrementRetryCount :exec
@@ -806,6 +1695,141 @@ func (q *Queries) InsertFailedMessage(ctx context.Context, arg InsertFailedMessa
 	return i, err
 }
 
+const listCategories = `-- name: ListCategories :many
+SELECT
+    id,
+    name,
+    embedding,
+    description,
+    created_at,
+    updated_at
+FROM categories
+ORDER BY name
+`
+
+func (q *Queries) ListCategories(ctx context.Context) ([]Category, error) {
+	rows, err := q.db.Query(ctx, listCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Category
+	for rows.Next() {
+		var i Category
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Embedding,
+			&i.Description,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubcategories = `-- name: ListSubcategories :many
+SELECT
+    s.id,
+    s.name,
+    c.name AS category,
+    s.description,
+    s.embedding,
+    s.created_at,
+    s.updated_at
+FROM subcategories s
+JOIN categories c
+ON s.category_id = c.id
+ORDER BY c.name, s.name
+`
+
+type ListSubcategoriesRow struct {
+	ID          pgtype.UUID      `json:"id"`
+	Name        string           `json:"name"`
+	Category    string           `json:"category"`
+	Description pgtype.Text      `json:"description"`
+	Embedding   []float32        `json:"embedding"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
+func (q *Queries) ListSubcategories(ctx context.Context) ([]ListSubcategoriesRow, error) {
+	rows, err := q.db.Query(ctx, listSubcategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSubcategoriesRow
+	for rows.Next() {
+		var i ListSubcategoriesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Category,
+			&i.Description,
+			&i.Embedding,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSubcategoriesByCategory = `-- name: ListSubcategoriesByCategory :many
+SELECT
+    s.id,
+    s.name,
+    s.description,
+    s.embedding
+FROM subcategories s
+WHERE s.category_id = $1
+ORDER BY s.name
+`
+
+type ListSubcategoriesByCategoryRow struct {
+	ID          pgtype.UUID `json:"id"`
+	Name        string      `json:"name"`
+	Description pgtype.Text `json:"description"`
+	Embedding   []float32   `json:"embedding"`
+}
+
+func (q *Queries) ListSubcategoriesByCategory(ctx context.Context, categoryID pgtype.UUID) ([]ListSubcategoriesByCategoryRow, error) {
+	rows, err := q.db.Query(ctx, listSubcategoriesByCategory, categoryID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSubcategoriesByCategoryRow
+	for rows.Next() {
+		var i ListSubcategoriesByCategoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Embedding,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markFailedMessageDeadLetter = `-- name: MarkFailedMessageDeadLetter :exec
 UPDATE failed_messages
 SET
@@ -833,6 +1857,211 @@ func (q *Queries) MarkFailedMessageRetried(ctx context.Context, id pgtype.UUID) 
 	return err
 }
 
+const similarLandlord = `-- name: SimilarLandlord :many
+
+SELECT
+    id,
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord,
+    embedding_landlord <-> $1 AS distance
+FROM sites
+WHERE embedding_landlord IS NOT NULL
+ORDER BY embedding_landlord <-> $1
+LIMIT $2
+`
+
+type SimilarLandlordParams struct {
+	EmbeddingLandlord pgvector.Vector `json:"embedding_landlord"`
+	Limit             int32           `json:"limit"`
+}
+
+type SimilarLandlordRow struct {
+	ID            int32       `json:"id"`
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+	Distance      interface{} `json:"distance"`
+}
+
+// =========================================
+// VECTOR SIMILARITY SEARCH
+// =========================================
+func (q *Queries) SimilarLandlord(ctx context.Context, arg SimilarLandlordParams) ([]SimilarLandlordRow, error) {
+	rows, err := q.db.Query(ctx, similarLandlord, arg.EmbeddingLandlord, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SimilarLandlordRow
+	for rows.Next() {
+		var i SimilarLandlordRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+			&i.Distance,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const similarLandlordAddress = `-- name: SimilarLandlordAddress :many
+SELECT
+    id,
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord,
+    embedding_landlord_address <-> $1 AS distance
+FROM sites
+WHERE embedding_landlord_address IS NOT NULL
+ORDER BY embedding_landlord_address <-> $1
+LIMIT $2
+`
+
+type SimilarLandlordAddressParams struct {
+	EmbeddingLandlordAddress pgvector.Vector `json:"embedding_landlord_address"`
+	Limit                    int32           `json:"limit"`
+}
+
+type SimilarLandlordAddressRow struct {
+	ID            int32       `json:"id"`
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+	Distance      interface{} `json:"distance"`
+}
+
+func (q *Queries) SimilarLandlordAddress(ctx context.Context, arg SimilarLandlordAddressParams) ([]SimilarLandlordAddressRow, error) {
+	rows, err := q.db.Query(ctx, similarLandlordAddress, arg.EmbeddingLandlordAddress, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SimilarLandlordAddressRow
+	for rows.Next() {
+		var i SimilarLandlordAddressRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+			&i.Distance,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const similarSiteAddress = `-- name: SimilarSiteAddress :many
+SELECT
+    id,
+    pk,
+    site_code,
+    address,
+    zip,
+    state,
+    portfolio_type,
+    sap,
+    landlord,
+    embedding_site_address <-> $1 AS distance
+FROM sites
+WHERE embedding_site_address IS NOT NULL
+ORDER BY embedding_site_address <-> $1
+LIMIT $2
+`
+
+type SimilarSiteAddressParams struct {
+	EmbeddingSiteAddress pgvector.Vector `json:"embedding_site_address"`
+	Limit                int32           `json:"limit"`
+}
+
+type SimilarSiteAddressRow struct {
+	ID            int32       `json:"id"`
+	Pk            pgtype.Text `json:"pk"`
+	SiteCode      pgtype.Text `json:"site_code"`
+	Address       pgtype.Text `json:"address"`
+	Zip           pgtype.Text `json:"zip"`
+	State         pgtype.Text `json:"state"`
+	PortfolioType pgtype.Text `json:"portfolio_type"`
+	Sap           pgtype.Text `json:"sap"`
+	Landlord      pgtype.Text `json:"landlord"`
+	Distance      interface{} `json:"distance"`
+}
+
+func (q *Queries) SimilarSiteAddress(ctx context.Context, arg SimilarSiteAddressParams) ([]SimilarSiteAddressRow, error) {
+	rows, err := q.db.Query(ctx, similarSiteAddress, arg.EmbeddingSiteAddress, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SimilarSiteAddressRow
+	for rows.Next() {
+		var i SimilarSiteAddressRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Pk,
+			&i.SiteCode,
+			&i.Address,
+			&i.Zip,
+			&i.State,
+			&i.PortfolioType,
+			&i.Sap,
+			&i.Landlord,
+			&i.Distance,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateDocumentStatus = `-- name: UpdateDocumentStatus :exec
 UPDATE document_status
 SET
@@ -857,6 +2086,256 @@ func (q *Queries) UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentSt
 		arg.State,
 		arg.Message,
 	)
+	return err
+}
+
+const updateLandlordAddressEmbedding = `-- name: UpdateLandlordAddressEmbedding :exec
+UPDATE sites
+SET embedding_landlord_address = $2
+WHERE id = $1
+`
+
+type UpdateLandlordAddressEmbeddingParams struct {
+	ID                       int32           `json:"id"`
+	EmbeddingLandlordAddress pgvector.Vector `json:"embedding_landlord_address"`
+}
+
+func (q *Queries) UpdateLandlordAddressEmbedding(ctx context.Context, arg UpdateLandlordAddressEmbeddingParams) error {
+	_, err := q.db.Exec(ctx, updateLandlordAddressEmbedding, arg.ID, arg.EmbeddingLandlordAddress)
+	return err
+}
+
+const updateLandlordEmbedding = `-- name: UpdateLandlordEmbedding :exec
+
+UPDATE sites
+SET embedding_landlord = $2
+WHERE id = $1
+`
+
+type UpdateLandlordEmbeddingParams struct {
+	ID                int32           `json:"id"`
+	EmbeddingLandlord pgvector.Vector `json:"embedding_landlord"`
+}
+
+// =========================================
+// UPDATE EMBEDDINGS
+// =========================================
+func (q *Queries) UpdateLandlordEmbedding(ctx context.Context, arg UpdateLandlordEmbeddingParams) error {
+	_, err := q.db.Exec(ctx, updateLandlordEmbedding, arg.ID, arg.EmbeddingLandlord)
+	return err
+}
+
+const updateMetadata = `-- name: UpdateMetadata :exec
+UPDATE metadata SET
+    site_id = $2,
+    document_type = $3,
+    confidence = $4,
+    document_date = $5,
+    portfolio_type = $6,
+    document_amount = $7,
+    licensed_entity = $8,
+    licensing_authority = $9,
+    document_folder = $10,
+    notes = $11
+WHERE id = $1
+`
+
+type UpdateMetadataParams struct {
+	ID                 int32         `json:"id"`
+	SiteID             pgtype.Text   `json:"site_id"`
+	DocumentType       pgtype.Text   `json:"document_type"`
+	Confidence         pgtype.Float8 `json:"confidence"`
+	DocumentDate       pgtype.Date   `json:"document_date"`
+	PortfolioType      pgtype.Text   `json:"portfolio_type"`
+	DocumentAmount     pgtype.Float8 `json:"document_amount"`
+	LicensedEntity     pgtype.Text   `json:"licensed_entity"`
+	LicensingAuthority pgtype.Text   `json:"licensing_authority"`
+	DocumentFolder     pgtype.Text   `json:"document_folder"`
+	Notes              pgtype.Text   `json:"notes"`
+}
+
+func (q *Queries) UpdateMetadata(ctx context.Context, arg UpdateMetadataParams) error {
+	_, err := q.db.Exec(ctx, updateMetadata,
+		arg.ID,
+		arg.SiteID,
+		arg.DocumentType,
+		arg.Confidence,
+		arg.DocumentDate,
+		arg.PortfolioType,
+		arg.DocumentAmount,
+		arg.LicensedEntity,
+		arg.LicensingAuthority,
+		arg.DocumentFolder,
+		arg.Notes,
+	)
+	return err
+}
+
+const updateSite = `-- name: UpdateSite :exec
+
+UPDATE sites SET
+    pk = $2,
+    embedding_landlord = $3,
+    embedding_site_address = $4,
+    embedding_landlord_address = $5,
+    timestamp = $6,
+    site_code = $7,
+    portfolio_type = $8,
+    channel = $9,
+    use_type = $10,
+    name = $11,
+    status = $12,
+    sprint_cascade_id = $13,
+    address = $14,
+    address2 = $15,
+    city = $16,
+    state = $17,
+    zip = $18,
+    county = $19,
+    site_status = $20,
+    site_type = $21,
+    site_class = $22,
+    build_status = $23,
+    landlord = $24,
+    lease_address_2 = $25,
+    lease_city = $26,
+    lease_state = $27,
+    lease_zip = $28,
+    lease_county = $29,
+    lease_vendor = $30,
+    lease_vendor_role = $31,
+    lease_vendor_address = $32,
+    lease_vendor_address2 = $33,
+    lease_vendor_city = $34,
+    lease_vendor_state = $35,
+    lease_vendor_zip = $36,
+    structure_vendor = $37,
+    structure_vendor_role = $38,
+    ground_vendor = $39,
+    ground_vendor_role = $40,
+    latitude = $41,
+    longitude = $42,
+    sap = $43,
+    business_license_ids = $44,
+    landlord_reference_id = $45
+WHERE id = $1
+`
+
+type UpdateSiteParams struct {
+	ID                       int32              `json:"id"`
+	Pk                       pgtype.Text        `json:"pk"`
+	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
+	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
+	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Timestamp                pgtype.Timestamptz `json:"timestamp"`
+	SiteCode                 pgtype.Text        `json:"site_code"`
+	PortfolioType            pgtype.Text        `json:"portfolio_type"`
+	Channel                  pgtype.Text        `json:"channel"`
+	UseType                  pgtype.Text        `json:"use_type"`
+	Name                     pgtype.Text        `json:"name"`
+	Status                   pgtype.Text        `json:"status"`
+	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
+	Address                  pgtype.Text        `json:"address"`
+	Address2                 pgtype.Text        `json:"address2"`
+	City                     pgtype.Text        `json:"city"`
+	State                    pgtype.Text        `json:"state"`
+	Zip                      pgtype.Text        `json:"zip"`
+	County                   pgtype.Text        `json:"county"`
+	SiteStatus               pgtype.Text        `json:"site_status"`
+	SiteType                 pgtype.Text        `json:"site_type"`
+	SiteClass                pgtype.Text        `json:"site_class"`
+	BuildStatus              pgtype.Text        `json:"build_status"`
+	Landlord                 pgtype.Text        `json:"landlord"`
+	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
+	LeaseCity                pgtype.Text        `json:"lease_city"`
+	LeaseState               pgtype.Text        `json:"lease_state"`
+	LeaseZip                 pgtype.Text        `json:"lease_zip"`
+	LeaseCounty              pgtype.Text        `json:"lease_county"`
+	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
+	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
+	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
+	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
+	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
+	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
+	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
+	StructureVendor          pgtype.Text        `json:"structure_vendor"`
+	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
+	GroundVendor             pgtype.Text        `json:"ground_vendor"`
+	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
+	Latitude                 pgtype.Float8      `json:"latitude"`
+	Longitude                pgtype.Float8      `json:"longitude"`
+	Sap                      pgtype.Text        `json:"sap"`
+	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
+	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+}
+
+// =========================================
+// UPDATE ALL FIELDS
+// =========================================
+func (q *Queries) UpdateSite(ctx context.Context, arg UpdateSiteParams) error {
+	_, err := q.db.Exec(ctx, updateSite,
+		arg.ID,
+		arg.Pk,
+		arg.EmbeddingLandlord,
+		arg.EmbeddingSiteAddress,
+		arg.EmbeddingLandlordAddress,
+		arg.Timestamp,
+		arg.SiteCode,
+		arg.PortfolioType,
+		arg.Channel,
+		arg.UseType,
+		arg.Name,
+		arg.Status,
+		arg.SprintCascadeID,
+		arg.Address,
+		arg.Address2,
+		arg.City,
+		arg.State,
+		arg.Zip,
+		arg.County,
+		arg.SiteStatus,
+		arg.SiteType,
+		arg.SiteClass,
+		arg.BuildStatus,
+		arg.Landlord,
+		arg.LeaseAddress2,
+		arg.LeaseCity,
+		arg.LeaseState,
+		arg.LeaseZip,
+		arg.LeaseCounty,
+		arg.LeaseVendor,
+		arg.LeaseVendorRole,
+		arg.LeaseVendorAddress,
+		arg.LeaseVendorAddress2,
+		arg.LeaseVendorCity,
+		arg.LeaseVendorState,
+		arg.LeaseVendorZip,
+		arg.StructureVendor,
+		arg.StructureVendorRole,
+		arg.GroundVendor,
+		arg.GroundVendorRole,
+		arg.Latitude,
+		arg.Longitude,
+		arg.Sap,
+		arg.BusinessLicenseIds,
+		arg.LandlordReferenceID,
+	)
+	return err
+}
+
+const updateSiteAddressEmbedding = `-- name: UpdateSiteAddressEmbedding :exec
+UPDATE sites
+SET embedding_site_address = $2
+WHERE id = $1
+`
+
+type UpdateSiteAddressEmbeddingParams struct {
+	ID                   int32           `json:"id"`
+	EmbeddingSiteAddress pgvector.Vector `json:"embedding_site_address"`
+}
+
+func (q *Queries) UpdateSiteAddressEmbedding(ctx context.Context, arg UpdateSiteAddressEmbeddingParams) error {
+	_, err := q.db.Exec(ctx, updateSiteAddressEmbedding, arg.ID, arg.EmbeddingSiteAddress)
 	return err
 }
 

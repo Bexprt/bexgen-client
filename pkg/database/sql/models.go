@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/pgvector/pgvector-go"
 )
 
 type ProcessingState string
@@ -107,6 +108,15 @@ type AuditEvent struct {
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
+type Category struct {
+	ID          pgtype.UUID      `json:"id"`
+	Name        string           `json:"name"`
+	Embedding   []float32        `json:"embedding"`
+	Description pgtype.Text      `json:"description"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
+}
+
 type Document struct {
 	ID             pgtype.UUID        `json:"id"`
 	Filename       pgtype.Text        `json:"filename"`
@@ -137,8 +147,81 @@ type FailedMessage struct {
 	LastRetryAt     pgtype.Timestamptz `json:"last_retry_at"`
 }
 
+type Metadata struct {
+	ID                 int32              `json:"id"`
+	SiteID             pgtype.Text        `json:"site_id"`
+	DocumentType       pgtype.Text        `json:"document_type"`
+	Confidence         pgtype.Float8      `json:"confidence"`
+	DocumentDate       pgtype.Date        `json:"document_date"`
+	PortfolioType      pgtype.Text        `json:"portfolio_type"`
+	DocumentAmount     pgtype.Float8      `json:"document_amount"`
+	LicensedEntity     pgtype.Text        `json:"licensed_entity"`
+	LicensingAuthority pgtype.Text        `json:"licensing_authority"`
+	DocumentFolder     pgtype.Text        `json:"document_folder"`
+	Notes              pgtype.Text        `json:"notes"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+}
+
 type ProcessingStep struct {
 	Name        string             `json:"name"`
 	Description pgtype.Text        `json:"description"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type Site struct {
+	ID                       int32              `json:"id"`
+	Pk                       pgtype.Text        `json:"pk"`
+	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
+	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
+	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Timestamp                pgtype.Timestamptz `json:"timestamp"`
+	SiteCode                 pgtype.Text        `json:"site_code"`
+	PortfolioType            pgtype.Text        `json:"portfolio_type"`
+	Channel                  pgtype.Text        `json:"channel"`
+	UseType                  pgtype.Text        `json:"use_type"`
+	Name                     pgtype.Text        `json:"name"`
+	Status                   pgtype.Text        `json:"status"`
+	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
+	Address                  pgtype.Text        `json:"address"`
+	Address2                 pgtype.Text        `json:"address2"`
+	City                     pgtype.Text        `json:"city"`
+	State                    pgtype.Text        `json:"state"`
+	Zip                      pgtype.Text        `json:"zip"`
+	County                   pgtype.Text        `json:"county"`
+	SiteStatus               pgtype.Text        `json:"site_status"`
+	SiteType                 pgtype.Text        `json:"site_type"`
+	SiteClass                pgtype.Text        `json:"site_class"`
+	BuildStatus              pgtype.Text        `json:"build_status"`
+	Landlord                 pgtype.Text        `json:"landlord"`
+	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
+	LeaseCity                pgtype.Text        `json:"lease_city"`
+	LeaseState               pgtype.Text        `json:"lease_state"`
+	LeaseZip                 pgtype.Text        `json:"lease_zip"`
+	LeaseCounty              pgtype.Text        `json:"lease_county"`
+	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
+	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
+	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
+	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
+	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
+	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
+	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
+	StructureVendor          pgtype.Text        `json:"structure_vendor"`
+	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
+	GroundVendor             pgtype.Text        `json:"ground_vendor"`
+	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
+	Latitude                 pgtype.Float8      `json:"latitude"`
+	Longitude                pgtype.Float8      `json:"longitude"`
+	Sap                      pgtype.Text        `json:"sap"`
+	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
+	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+}
+
+type Subcategory struct {
+	ID          pgtype.UUID      `json:"id"`
+	CategoryID  pgtype.UUID      `json:"category_id"`
+	Name        string           `json:"name"`
+	Description pgtype.Text      `json:"description"`
+	Embedding   []float32        `json:"embedding"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
 }

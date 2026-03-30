@@ -15,13 +15,14 @@ type FactoryConfig struct {
 }
 
 type RootYAML struct {
-	Storage   *FactoryConfig `yaml:"storage"`
-	Messaging *FactoryConfig `yaml:"messaging"`
-	Search    *FactoryConfig `yaml:"search"`
-	Embedding *FactoryConfig `yaml:"embedding"`
-	Model     *FactoryConfig `yaml:"model"`
-	Rerank    *FactoryConfig `yaml:"rerank"`
-	SQL       *FactoryConfig `yaml:"Sql"`
+	Storage   *FactoryConfig    `yaml:"storage"`
+	Messaging *FactoryConfig    `yaml:"messaging"`
+	Search    *FactoryConfig    `yaml:"search"`
+	Embedding *FactoryConfig    `yaml:"embedding"`
+	Model     *FactoryConfig    `yaml:"model"`
+	Rerank    *FactoryConfig    `yaml:"rerank"`
+	SQL       *FactoryConfig    `yaml:"Sql"`
+	GRPC      map[string]string `yaml:"GROC"`
 }
 
 const defaultConfigPath = "/etc/bexgen/config.yaml"

@@ -22,7 +22,7 @@ type RootYAML struct {
 	Model     *FactoryConfig    `yaml:"model"`
 	Rerank    *FactoryConfig    `yaml:"rerank"`
 	SQL       *FactoryConfig    `yaml:"Sql"`
-	GRPC      map[string]string `yaml:"GROC"`
+	GRPC      map[string]string `yaml:"GRPC"`
 }
 
 const defaultConfigPath = "/etc/bexgen/config.yaml"

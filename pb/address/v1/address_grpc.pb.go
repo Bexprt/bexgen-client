@@ -120,3 +120,105 @@ var DocumentExtractorService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "address/v1/address.proto",
 }
+
+const (
+	ValidationService_ValidateFields_FullMethodName = "/address.v1.ValidationService/ValidateFields"
+)
+
+// ValidationServiceClient is the client API for ValidationService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type ValidationServiceClient interface {
+	ValidateFields(ctx context.Context, in *ValidateFieldsRequest, opts ...grpc.CallOption) (*ValidateFieldsResponse, error)
+}
+
+type validationServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewValidationServiceClient(cc grpc.ClientConnInterface) ValidationServiceClient {
+	return &validationServiceClient{cc}
+}
+
+func (c *validationServiceClient) ValidateFields(ctx context.Context, in *ValidateFieldsRequest, opts ...grpc.CallOption) (*ValidateFieldsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateFieldsResponse)
+	err := c.cc.Invoke(ctx, ValidationService_ValidateFields_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// ValidationServiceServer is the server API for ValidationService service.
+// All implementations must embed UnimplementedValidationServiceServer
+// for forward compatibility.
+type ValidationServiceServer interface {
+	ValidateFields(context.Context, *ValidateFieldsRequest) (*ValidateFieldsResponse, error)
+	mustEmbedUnimplementedValidationServiceServer()
+}
+
+// UnimplementedValidationServiceServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedValidationServiceServer struct{}
+
+func (UnimplementedValidationServiceServer) ValidateFields(context.Context, *ValidateFieldsRequest) (*ValidateFieldsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ValidateFields not implemented")
+}
+func (UnimplementedValidationServiceServer) mustEmbedUnimplementedValidationServiceServer() {}
+func (UnimplementedValidationServiceServer) testEmbeddedByValue()                           {}
+
+// UnsafeValidationServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ValidationServiceServer will
+// result in compilation errors.
+type UnsafeValidationServiceServer interface {
+	mustEmbedUnimplementedValidationServiceServer()
+}
+
+func RegisterValidationServiceServer(s grpc.ServiceRegistrar, srv ValidationServiceServer) {
+	// If the following call panics, it indicates UnimplementedValidationServiceServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&ValidationService_ServiceDesc, srv)
+}
+
+func _ValidationService_ValidateFields_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateFieldsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ValidationServiceServer).ValidateFields(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ValidationService_ValidateFields_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ValidationServiceServer).ValidateFields(ctx, req.(*ValidateFieldsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// ValidationService_ServiceDesc is the grpc.ServiceDesc for ValidationService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var ValidationService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "address.v1.ValidationService",
+	HandlerType: (*ValidationServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ValidateFields",
+			Handler:    _ValidationService_ValidateFields_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "address/v1/address.proto",
+}

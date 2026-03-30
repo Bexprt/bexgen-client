@@ -473,6 +473,382 @@ func (x *ExtractFieldsResult) GetCertificateOfOccupancy() *COIFields {
 	return nil
 }
 
+type ValidateFieldsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Result        *ExtractFieldsResult   `protobuf:"bytes,1,opt,name=result,proto3" json:"result,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateFieldsRequest) Reset() {
+	*x = ValidateFieldsRequest{}
+	mi := &file_address_v1_address_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateFieldsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateFieldsRequest) ProtoMessage() {}
+
+func (x *ValidateFieldsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateFieldsRequest.ProtoReflect.Descriptor instead.
+func (*ValidateFieldsRequest) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ValidateFieldsRequest) GetResult() *ExtractFieldsResult {
+	if x != nil {
+		return x.Result
+	}
+	return nil
+}
+
+type AddressValidation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Address       *Address               `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Score         float32                `protobuf:"fixed32,2,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddressValidation) Reset() {
+	*x = AddressValidation{}
+	mi := &file_address_v1_address_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddressValidation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddressValidation) ProtoMessage() {}
+
+func (x *AddressValidation) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddressValidation.ProtoReflect.Descriptor instead.
+func (*AddressValidation) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AddressValidation) GetAddress() *Address {
+	if x != nil {
+		return x.Address
+	}
+	return nil
+}
+
+func (x *AddressValidation) GetScore() float32 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type DateValidation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Date          *DateItem              `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"`
+	Score         float32                `protobuf:"fixed32,2,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DateValidation) Reset() {
+	*x = DateValidation{}
+	mi := &file_address_v1_address_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DateValidation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DateValidation) ProtoMessage() {}
+
+func (x *DateValidation) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DateValidation.ProtoReflect.Descriptor instead.
+func (*DateValidation) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DateValidation) GetDate() *DateItem {
+	if x != nil {
+		return x.Date
+	}
+	return nil
+}
+
+func (x *DateValidation) GetScore() float32 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type EntityAddressValidation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EntityAddress *EntityAddress         `protobuf:"bytes,1,opt,name=entity_address,json=entityAddress,proto3" json:"entity_address,omitempty"`
+	Score         float32                `protobuf:"fixed32,2,opt,name=score,proto3" json:"score,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EntityAddressValidation) Reset() {
+	*x = EntityAddressValidation{}
+	mi := &file_address_v1_address_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EntityAddressValidation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EntityAddressValidation) ProtoMessage() {}
+
+func (x *EntityAddressValidation) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EntityAddressValidation.ProtoReflect.Descriptor instead.
+func (*EntityAddressValidation) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *EntityAddressValidation) GetEntityAddress() *EntityAddress {
+	if x != nil {
+		return x.EntityAddress
+	}
+	return nil
+}
+
+func (x *EntityAddressValidation) GetScore() float32 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type COIFieldsValidation struct {
+	state                   protoimpl.MessageState   `protogen:"open.v1"`
+	CertificateOfOccupancy  *COIFields               `protobuf:"bytes,1,opt,name=certificate_of_occupancy,json=certificateOfOccupancy,proto3" json:"certificate_of_occupancy,omitempty"`
+	ExpiryDateScore         float32                  `protobuf:"fixed32,2,opt,name=expiry_date_score,json=expiryDateScore,proto3" json:"expiry_date_score,omitempty"`
+	LicenseIdentityScore    float32                  `protobuf:"fixed32,3,opt,name=license_identity_score,json=licenseIdentityScore,proto3" json:"license_identity_score,omitempty"`
+	LicensingAuthorityScore float32                  `protobuf:"fixed32,4,opt,name=licensing_authority_score,json=licensingAuthorityScore,proto3" json:"licensing_authority_score,omitempty"`
+	EntityAddress           *EntityAddressValidation `protobuf:"bytes,5,opt,name=entity_address,json=entityAddress,proto3" json:"entity_address,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *COIFieldsValidation) Reset() {
+	*x = COIFieldsValidation{}
+	mi := &file_address_v1_address_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *COIFieldsValidation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*COIFieldsValidation) ProtoMessage() {}
+
+func (x *COIFieldsValidation) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use COIFieldsValidation.ProtoReflect.Descriptor instead.
+func (*COIFieldsValidation) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *COIFieldsValidation) GetCertificateOfOccupancy() *COIFields {
+	if x != nil {
+		return x.CertificateOfOccupancy
+	}
+	return nil
+}
+
+func (x *COIFieldsValidation) GetExpiryDateScore() float32 {
+	if x != nil {
+		return x.ExpiryDateScore
+	}
+	return 0
+}
+
+func (x *COIFieldsValidation) GetLicenseIdentityScore() float32 {
+	if x != nil {
+		return x.LicenseIdentityScore
+	}
+	return 0
+}
+
+func (x *COIFieldsValidation) GetLicensingAuthorityScore() float32 {
+	if x != nil {
+		return x.LicensingAuthorityScore
+	}
+	return 0
+}
+
+func (x *COIFieldsValidation) GetEntityAddress() *EntityAddressValidation {
+	if x != nil {
+		return x.EntityAddress
+	}
+	return nil
+}
+
+type ValidateFieldsResponse struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	Id                     string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Addresses              []*AddressValidation   `protobuf:"bytes,2,rep,name=addresses,proto3" json:"addresses,omitempty"`
+	Dates                  []*DateValidation      `protobuf:"bytes,3,rep,name=dates,proto3" json:"dates,omitempty"`
+	Landlord               string                 `protobuf:"bytes,4,opt,name=landlord,proto3" json:"landlord,omitempty"`
+	LandlordScore          float32                `protobuf:"fixed32,5,opt,name=landlord_score,json=landlordScore,proto3" json:"landlord_score,omitempty"`
+	SiteId                 string                 `protobuf:"bytes,6,opt,name=site_id,json=siteId,proto3" json:"site_id,omitempty"`
+	SiteIdScore            float32                `protobuf:"fixed32,7,opt,name=site_id_score,json=siteIdScore,proto3" json:"site_id_score,omitempty"`
+	CertificateOfOccupancy *COIFieldsValidation   `protobuf:"bytes,8,opt,name=certificate_of_occupancy,json=certificateOfOccupancy,proto3" json:"certificate_of_occupancy,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ValidateFieldsResponse) Reset() {
+	*x = ValidateFieldsResponse{}
+	mi := &file_address_v1_address_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateFieldsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateFieldsResponse) ProtoMessage() {}
+
+func (x *ValidateFieldsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_address_v1_address_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateFieldsResponse.ProtoReflect.Descriptor instead.
+func (*ValidateFieldsResponse) Descriptor() ([]byte, []int) {
+	return file_address_v1_address_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ValidateFieldsResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *ValidateFieldsResponse) GetAddresses() []*AddressValidation {
+	if x != nil {
+		return x.Addresses
+	}
+	return nil
+}
+
+func (x *ValidateFieldsResponse) GetDates() []*DateValidation {
+	if x != nil {
+		return x.Dates
+	}
+	return nil
+}
+
+func (x *ValidateFieldsResponse) GetLandlord() string {
+	if x != nil {
+		return x.Landlord
+	}
+	return ""
+}
+
+func (x *ValidateFieldsResponse) GetLandlordScore() float32 {
+	if x != nil {
+		return x.LandlordScore
+	}
+	return 0
+}
+
+func (x *ValidateFieldsResponse) GetSiteId() string {
+	if x != nil {
+		return x.SiteId
+	}
+	return ""
+}
+
+func (x *ValidateFieldsResponse) GetSiteIdScore() float32 {
+	if x != nil {
+		return x.SiteIdScore
+	}
+	return 0
+}
+
+func (x *ValidateFieldsResponse) GetCertificateOfOccupancy() *COIFieldsValidation {
+	if x != nil {
+		return x.CertificateOfOccupancy
+	}
+	return nil
+}
+
 var File_address_v1_address_proto protoreflect.FileDescriptor
 
 const file_address_v1_address_proto_rawDesc = "" +
@@ -511,9 +887,37 @@ const file_address_v1_address_proto_rawDesc = "" +
 	"\x05dates\x18\x03 \x03(\v2\x14.address.v1.DateItemR\x05dates\x12\x1a\n" +
 	"\blandlord\x18\x04 \x01(\tR\blandlord\x12\x17\n" +
 	"\asite_id\x18\x05 \x01(\tR\x06siteId\x12O\n" +
-	"\x18certificate_of_occupancy\x18\x06 \x01(\v2\x15.address.v1.COIFieldsR\x16certificateOfOccupancy2p\n" +
+	"\x18certificate_of_occupancy\x18\x06 \x01(\v2\x15.address.v1.COIFieldsR\x16certificateOfOccupancy\"P\n" +
+	"\x15ValidateFieldsRequest\x127\n" +
+	"\x06result\x18\x01 \x01(\v2\x1f.address.v1.ExtractFieldsResultR\x06result\"X\n" +
+	"\x11AddressValidation\x12-\n" +
+	"\aaddress\x18\x01 \x01(\v2\x13.address.v1.AddressR\aaddress\x12\x14\n" +
+	"\x05score\x18\x02 \x01(\x02R\x05score\"P\n" +
+	"\x0eDateValidation\x12(\n" +
+	"\x04date\x18\x01 \x01(\v2\x14.address.v1.DateItemR\x04date\x12\x14\n" +
+	"\x05score\x18\x02 \x01(\x02R\x05score\"q\n" +
+	"\x17EntityAddressValidation\x12@\n" +
+	"\x0eentity_address\x18\x01 \x01(\v2\x19.address.v1.EntityAddressR\rentityAddress\x12\x14\n" +
+	"\x05score\x18\x02 \x01(\x02R\x05score\"\xd0\x02\n" +
+	"\x13COIFieldsValidation\x12O\n" +
+	"\x18certificate_of_occupancy\x18\x01 \x01(\v2\x15.address.v1.COIFieldsR\x16certificateOfOccupancy\x12*\n" +
+	"\x11expiry_date_score\x18\x02 \x01(\x02R\x0fexpiryDateScore\x124\n" +
+	"\x16license_identity_score\x18\x03 \x01(\x02R\x14licenseIdentityScore\x12:\n" +
+	"\x19licensing_authority_score\x18\x04 \x01(\x02R\x17licensingAuthorityScore\x12J\n" +
+	"\x0eentity_address\x18\x05 \x01(\v2#.address.v1.EntityAddressValidationR\rentityAddress\"\xf2\x02\n" +
+	"\x16ValidateFieldsResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12;\n" +
+	"\taddresses\x18\x02 \x03(\v2\x1d.address.v1.AddressValidationR\taddresses\x120\n" +
+	"\x05dates\x18\x03 \x03(\v2\x1a.address.v1.DateValidationR\x05dates\x12\x1a\n" +
+	"\blandlord\x18\x04 \x01(\tR\blandlord\x12%\n" +
+	"\x0elandlord_score\x18\x05 \x01(\x02R\rlandlordScore\x12\x17\n" +
+	"\asite_id\x18\x06 \x01(\tR\x06siteId\x12\"\n" +
+	"\rsite_id_score\x18\a \x01(\x02R\vsiteIdScore\x12Y\n" +
+	"\x18certificate_of_occupancy\x18\b \x01(\v2\x1f.address.v1.COIFieldsValidationR\x16certificateOfOccupancy2p\n" +
 	"\x18DocumentExtractorService\x12T\n" +
-	"\rExtractFields\x12 .address.v1.ExtractFieldsRequest\x1a!.address.v1.ExtractFieldsResponseB9Z7github.com/bexprt/bexgen-client/pb/address/v1;addressv1b\x06proto3"
+	"\rExtractFields\x12 .address.v1.ExtractFieldsRequest\x1a!.address.v1.ExtractFieldsResponse2l\n" +
+	"\x11ValidationService\x12W\n" +
+	"\x0eValidateFields\x12!.address.v1.ValidateFieldsRequest\x1a\".address.v1.ValidateFieldsResponseB9Z7github.com/bexprt/bexgen-client/pb/address/v1;addressv1b\x06proto3"
 
 var (
 	file_address_v1_address_proto_rawDescOnce sync.Once
@@ -527,31 +931,48 @@ func file_address_v1_address_proto_rawDescGZIP() []byte {
 	return file_address_v1_address_proto_rawDescData
 }
 
-var file_address_v1_address_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_address_v1_address_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_address_v1_address_proto_goTypes = []any{
-	(*ExtractFieldsRequest)(nil),  // 0: address.v1.ExtractFieldsRequest
-	(*Address)(nil),               // 1: address.v1.Address
-	(*EntityAddress)(nil),         // 2: address.v1.EntityAddress
-	(*DateItem)(nil),              // 3: address.v1.DateItem
-	(*COIFields)(nil),             // 4: address.v1.COIFields
-	(*ExtractFieldsResponse)(nil), // 5: address.v1.ExtractFieldsResponse
-	(*ExtractFieldsResult)(nil),   // 6: address.v1.ExtractFieldsResult
+	(*ExtractFieldsRequest)(nil),    // 0: address.v1.ExtractFieldsRequest
+	(*Address)(nil),                 // 1: address.v1.Address
+	(*EntityAddress)(nil),           // 2: address.v1.EntityAddress
+	(*DateItem)(nil),                // 3: address.v1.DateItem
+	(*COIFields)(nil),               // 4: address.v1.COIFields
+	(*ExtractFieldsResponse)(nil),   // 5: address.v1.ExtractFieldsResponse
+	(*ExtractFieldsResult)(nil),     // 6: address.v1.ExtractFieldsResult
+	(*ValidateFieldsRequest)(nil),   // 7: address.v1.ValidateFieldsRequest
+	(*AddressValidation)(nil),       // 8: address.v1.AddressValidation
+	(*DateValidation)(nil),          // 9: address.v1.DateValidation
+	(*EntityAddressValidation)(nil), // 10: address.v1.EntityAddressValidation
+	(*COIFieldsValidation)(nil),     // 11: address.v1.COIFieldsValidation
+	(*ValidateFieldsResponse)(nil),  // 12: address.v1.ValidateFieldsResponse
 }
 var file_address_v1_address_proto_depIdxs = []int32{
-	2, // 0: address.v1.COIFields.entity_address:type_name -> address.v1.EntityAddress
-	1, // 1: address.v1.ExtractFieldsResponse.addresses:type_name -> address.v1.Address
-	3, // 2: address.v1.ExtractFieldsResponse.dates:type_name -> address.v1.DateItem
-	4, // 3: address.v1.ExtractFieldsResponse.certificate_of_occupancy:type_name -> address.v1.COIFields
-	1, // 4: address.v1.ExtractFieldsResult.addresses:type_name -> address.v1.Address
-	3, // 5: address.v1.ExtractFieldsResult.dates:type_name -> address.v1.DateItem
-	4, // 6: address.v1.ExtractFieldsResult.certificate_of_occupancy:type_name -> address.v1.COIFields
-	0, // 7: address.v1.DocumentExtractorService.ExtractFields:input_type -> address.v1.ExtractFieldsRequest
-	5, // 8: address.v1.DocumentExtractorService.ExtractFields:output_type -> address.v1.ExtractFieldsResponse
-	8, // [8:9] is the sub-list for method output_type
-	7, // [7:8] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	2,  // 0: address.v1.COIFields.entity_address:type_name -> address.v1.EntityAddress
+	1,  // 1: address.v1.ExtractFieldsResponse.addresses:type_name -> address.v1.Address
+	3,  // 2: address.v1.ExtractFieldsResponse.dates:type_name -> address.v1.DateItem
+	4,  // 3: address.v1.ExtractFieldsResponse.certificate_of_occupancy:type_name -> address.v1.COIFields
+	1,  // 4: address.v1.ExtractFieldsResult.addresses:type_name -> address.v1.Address
+	3,  // 5: address.v1.ExtractFieldsResult.dates:type_name -> address.v1.DateItem
+	4,  // 6: address.v1.ExtractFieldsResult.certificate_of_occupancy:type_name -> address.v1.COIFields
+	6,  // 7: address.v1.ValidateFieldsRequest.result:type_name -> address.v1.ExtractFieldsResult
+	1,  // 8: address.v1.AddressValidation.address:type_name -> address.v1.Address
+	3,  // 9: address.v1.DateValidation.date:type_name -> address.v1.DateItem
+	2,  // 10: address.v1.EntityAddressValidation.entity_address:type_name -> address.v1.EntityAddress
+	4,  // 11: address.v1.COIFieldsValidation.certificate_of_occupancy:type_name -> address.v1.COIFields
+	10, // 12: address.v1.COIFieldsValidation.entity_address:type_name -> address.v1.EntityAddressValidation
+	8,  // 13: address.v1.ValidateFieldsResponse.addresses:type_name -> address.v1.AddressValidation
+	9,  // 14: address.v1.ValidateFieldsResponse.dates:type_name -> address.v1.DateValidation
+	11, // 15: address.v1.ValidateFieldsResponse.certificate_of_occupancy:type_name -> address.v1.COIFieldsValidation
+	0,  // 16: address.v1.DocumentExtractorService.ExtractFields:input_type -> address.v1.ExtractFieldsRequest
+	7,  // 17: address.v1.ValidationService.ValidateFields:input_type -> address.v1.ValidateFieldsRequest
+	5,  // 18: address.v1.DocumentExtractorService.ExtractFields:output_type -> address.v1.ExtractFieldsResponse
+	12, // 19: address.v1.ValidationService.ValidateFields:output_type -> address.v1.ValidateFieldsResponse
+	18, // [18:20] is the sub-list for method output_type
+	16, // [16:18] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_address_v1_address_proto_init() }
@@ -565,9 +986,9 @@ func file_address_v1_address_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_address_v1_address_proto_rawDesc), len(file_address_v1_address_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   13,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_address_v1_address_proto_goTypes,
 		DependencyIndexes: file_address_v1_address_proto_depIdxs,

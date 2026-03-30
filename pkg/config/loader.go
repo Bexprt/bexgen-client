@@ -21,6 +21,7 @@ type RootYAML struct {
 	Embedding *FactoryConfig `yaml:"embedding"`
 	Model     *FactoryConfig `yaml:"model"`
 	Rerank    *FactoryConfig `yaml:"rerank"`
+	SQL       *FactoryConfig `yaml:"Sql"`
 }
 
 const defaultConfigPath = "/etc/bexgen/config.yaml"

@@ -84,6 +84,7 @@ type Querier interface {
 	SimilarLandlord(ctx context.Context, arg SimilarLandlordParams) ([]SimilarLandlordRow, error)
 	SimilarLandlordAddress(ctx context.Context, arg SimilarLandlordAddressParams) ([]SimilarLandlordAddressRow, error)
 	SimilarSiteAddress(ctx context.Context, arg SimilarSiteAddressParams) ([]SimilarSiteAddressRow, error)
+	UpdateDocumentClassification(ctx context.Context, arg UpdateDocumentClassificationParams) error
 	UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error
 	UpdateLandlordAddressEmbedding(ctx context.Context, arg UpdateLandlordAddressEmbeddingParams) error
 	// =========================================

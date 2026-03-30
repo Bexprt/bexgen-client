@@ -37,6 +37,10 @@ INSERT INTO documents (
 VALUES ($1, $2, $3, $4)
 RETURNING *;
 
+-- name: UpdateDocumentClassification :exec
+UPDATE documents
+SET classification = $2
+WHERE id = $1;
 
 -- name: GetDocumentByID :one
 SELECT *

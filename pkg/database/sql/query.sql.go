@@ -2065,6 +2065,22 @@ func (q *Queries) SimilarSiteAddress(ctx context.Context, arg SimilarSiteAddress
 	return items, nil
 }
 
+const updateDocumentClassification = `-- name: UpdateDocumentClassification :exec
+UPDATE documents
+SET classification = $2
+WHERE id = $1
+`
+
+type UpdateDocumentClassificationParams struct {
+	ID             uuid.UUID `json:"id"`
+	Classification string    `json:"classification"`
+}
+
+func (q *Queries) UpdateDocumentClassification(ctx context.Context, arg UpdateDocumentClassificationParams) error {
+	_, err := q.db.Exec(ctx, updateDocumentClassification, arg.ID, arg.Classification)
+	return err
+}
+
 const updateDocumentStatus = `-- name: UpdateDocumentStatus :exec
 UPDATE document_status
 SET

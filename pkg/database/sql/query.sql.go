@@ -7,7 +7,10 @@ package sql
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pgvector/pgvector-go"
 )
@@ -42,9 +45,9 @@ GROUP BY step_name, state
 `
 
 type CountDocumentsByStepAndStateRow struct {
-	StepName string          `json:"step_name"`
-	State    ProcessingState `json:"state"`
-	Total    int64           `json:"total"`
+	StepName string `json:"step_name"`
+	State    string `json:"state"`
+	Total    int64  `json:"total"`
 }
 
 // =====================================
@@ -125,7 +128,7 @@ type CreateAuditEventParams struct {
 }
 
 type CreateAuditEventRow struct {
-	ID        pgtype.UUID        `json:"id"`
+	ID        uuid.UUID          `json:"id"`
 	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
@@ -192,7 +195,7 @@ RETURNING id, filename, filepath, classification, created_at, updated_at
 `
 
 type CreateDocumentParams struct {
-	ID             pgtype.UUID `json:"id"`
+	ID             uuid.UUID   `json:"id"`
 	Filename       pgtype.Text `json:"filename"`
 	Filepath       pgtype.Text `json:"filepath"`
 	Classification pgtype.Text `json:"classification"`
@@ -468,7 +471,7 @@ RETURNING id, category_id, name, description, embedding, created_at, updated_at
 `
 
 type CreateSubcategoryParams struct {
-	CategoryID  pgtype.UUID `json:"category_id"`
+	CategoryID  uuid.UUID   `json:"category_id"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
 	Embedding   []float32   `json:"embedding"`
@@ -499,7 +502,7 @@ DELETE FROM categories
 WHERE id = $1
 `
 
-func (q *Queries) DeleteCategory(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) DeleteCategory(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteCategory, id)
 	return err
 }
@@ -509,7 +512,7 @@ DELETE FROM subcategories
 WHERE id = $1
 `
 
-func (q *Queries) DeleteSubcategory(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) DeleteSubcategory(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, deleteSubcategory, id)
 	return err
 }
@@ -618,9 +621,9 @@ LIMIT $2 OFFSET $3
 `
 
 type GetAuditByMetadataParams struct {
-	Column1 []byte `json:"column_1"`
-	Limit   int32  `json:"limit"`
-	Offset  int32  `json:"offset"`
+	Column1 json.RawMessage `json:"column_1"`
+	Limit   int32           `json:"limit"`
+	Offset  int32           `json:"offset"`
 }
 
 func (q *Queries) GetAuditByMetadata(ctx context.Context, arg GetAuditByMetadataParams) ([]AuditEvent, error) {
@@ -812,14 +815,14 @@ LIMIT $7 OFFSET $8
 `
 
 type GetAuditFilteredParams struct {
-	Column1 string             `json:"column_1"`
-	Column2 pgtype.UUID        `json:"column_2"`
-	Column3 string             `json:"column_3"`
-	Column4 string             `json:"column_4"`
-	Column5 pgtype.Timestamptz `json:"column_5"`
-	Column6 pgtype.Timestamptz `json:"column_6"`
-	Limit   int32              `json:"limit"`
-	Offset  int32              `json:"offset"`
+	Column1 string    `json:"column_1"`
+	Column2 uuid.UUID `json:"column_2"`
+	Column3 string    `json:"column_3"`
+	Column4 string    `json:"column_4"`
+	Column5 time.Time `json:"column_5"`
+	Column6 time.Time `json:"column_6"`
+	Limit   int32     `json:"limit"`
+	Offset  int32     `json:"offset"`
 }
 
 func (q *Queries) GetAuditFiltered(ctx context.Context, arg GetAuditFilteredParams) ([]AuditEvent, error) {
@@ -926,7 +929,7 @@ FROM documents
 WHERE id = $1
 `
 
-func (q *Queries) GetDocumentByID(ctx context.Context, id pgtype.UUID) (Document, error) {
+func (q *Queries) GetDocumentByID(ctx context.Context, id uuid.UUID) (Document, error) {
 	row := q.db.QueryRow(ctx, getDocumentByID, id)
 	var i Document
 	err := row.Scan(
@@ -947,7 +950,7 @@ WHERE document_id = $1
 ORDER BY updated_at DESC
 `
 
-func (q *Queries) GetDocumentStatuses(ctx context.Context, documentID pgtype.UUID) ([]DocumentStatus, error) {
+func (q *Queries) GetDocumentStatuses(ctx context.Context, documentID uuid.UUID) ([]DocumentStatus, error) {
 	rows, err := q.db.Query(ctx, getDocumentStatuses, documentID)
 	if err != nil {
 		return nil, err
@@ -983,10 +986,10 @@ LIMIT $3 OFFSET $4
 `
 
 type GetDocumentsByStepAndStateParams struct {
-	StepName string          `json:"step_name"`
-	State    ProcessingState `json:"state"`
-	Limit    int32           `json:"limit"`
-	Offset   int32           `json:"offset"`
+	StepName string `json:"step_name"`
+	State    string `json:"state"`
+	Limit    int32  `json:"limit"`
+	Offset   int32  `json:"offset"`
 }
 
 func (q *Queries) GetDocumentsByStepAndState(ctx context.Context, arg GetDocumentsByStepAndStateParams) ([]DocumentStatus, error) {
@@ -1642,7 +1645,7 @@ SET
 WHERE id = $1
 `
 
-func (q *Queries) IncrementRetryCount(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) IncrementRetryCount(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, incrementRetryCount, id)
 	return err
 }
@@ -1750,7 +1753,7 @@ ORDER BY c.name, s.name
 `
 
 type ListSubcategoriesRow struct {
-	ID          pgtype.UUID      `json:"id"`
+	ID          uuid.UUID        `json:"id"`
 	Name        string           `json:"name"`
 	Category    string           `json:"category"`
 	Description pgtype.Text      `json:"description"`
@@ -1799,13 +1802,13 @@ ORDER BY s.name
 `
 
 type ListSubcategoriesByCategoryRow struct {
-	ID          pgtype.UUID `json:"id"`
+	ID          uuid.UUID   `json:"id"`
 	Name        string      `json:"name"`
 	Description pgtype.Text `json:"description"`
 	Embedding   []float32   `json:"embedding"`
 }
 
-func (q *Queries) ListSubcategoriesByCategory(ctx context.Context, categoryID pgtype.UUID) ([]ListSubcategoriesByCategoryRow, error) {
+func (q *Queries) ListSubcategoriesByCategory(ctx context.Context, categoryID uuid.UUID) ([]ListSubcategoriesByCategoryRow, error) {
 	rows, err := q.db.Query(ctx, listSubcategoriesByCategory, categoryID)
 	if err != nil {
 		return nil, err
@@ -1838,7 +1841,7 @@ SET
 WHERE id = $1
 `
 
-func (q *Queries) MarkFailedMessageDeadLetter(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) MarkFailedMessageDeadLetter(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markFailedMessageDeadLetter, id)
 	return err
 }
@@ -1852,7 +1855,7 @@ SET
 WHERE id = $1
 `
 
-func (q *Queries) MarkFailedMessageRetried(ctx context.Context, id pgtype.UUID) error {
+func (q *Queries) MarkFailedMessageRetried(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.Exec(ctx, markFailedMessageRetried, id)
 	return err
 }
@@ -2073,10 +2076,10 @@ AND step_name = $2
 `
 
 type UpdateDocumentStatusParams struct {
-	DocumentID pgtype.UUID     `json:"document_id"`
-	StepName   string          `json:"step_name"`
-	State      ProcessingState `json:"state"`
-	Message    pgtype.Text     `json:"message"`
+	DocumentID uuid.UUID   `json:"document_id"`
+	StepName   string      `json:"step_name"`
+	State      string      `json:"state"`
+	Message    pgtype.Text `json:"message"`
 }
 
 func (q *Queries) UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error {
@@ -2356,10 +2359,10 @@ DO UPDATE SET
 `
 
 type UpsertDocumentStatusParams struct {
-	DocumentID pgtype.UUID     `json:"document_id"`
-	StepName   string          `json:"step_name"`
-	State      ProcessingState `json:"state"`
-	Message    pgtype.Text     `json:"message"`
+	DocumentID uuid.UUID   `json:"document_id"`
+	StepName   string      `json:"step_name"`
+	State      string      `json:"state"`
+	Message    pgtype.Text `json:"message"`
 }
 
 // =====================================

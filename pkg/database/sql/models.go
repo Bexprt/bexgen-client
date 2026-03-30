@@ -8,6 +8,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/pgvector/pgvector-go"
 )
@@ -99,7 +100,7 @@ func (ns NullRetryState) Value() (driver.Value, error) {
 }
 
 type AuditEvent struct {
-	ID         pgtype.UUID        `json:"id"`
+	ID         uuid.UUID          `json:"id"`
 	ResourceID pgtype.UUID        `json:"resource_id"`
 	Action     string             `json:"action"`
 	Resource   string             `json:"resource"`
@@ -109,7 +110,7 @@ type AuditEvent struct {
 }
 
 type Category struct {
-	ID          pgtype.UUID      `json:"id"`
+	ID          uuid.UUID        `json:"id"`
 	Name        string           `json:"name"`
 	Embedding   []float32        `json:"embedding"`
 	Description pgtype.Text      `json:"description"`
@@ -118,7 +119,7 @@ type Category struct {
 }
 
 type Document struct {
-	ID             pgtype.UUID        `json:"id"`
+	ID             uuid.UUID          `json:"id"`
 	Filename       pgtype.Text        `json:"filename"`
 	Filepath       pgtype.Text        `json:"filepath"`
 	Classification pgtype.Text        `json:"classification"`
@@ -127,15 +128,15 @@ type Document struct {
 }
 
 type DocumentStatus struct {
-	DocumentID pgtype.UUID        `json:"document_id"`
+	DocumentID uuid.UUID          `json:"document_id"`
 	StepName   string             `json:"step_name"`
-	State      ProcessingState    `json:"state"`
+	State      string             `json:"state"`
 	Message    pgtype.Text        `json:"message"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
 type FailedMessage struct {
-	ID              pgtype.UUID        `json:"id"`
+	ID              uuid.UUID          `json:"id"`
 	DocumentID      pgtype.UUID        `json:"document_id"`
 	TopicName       string             `json:"topic_name"`
 	ProtobufPayload []byte             `json:"protobuf_payload"`
@@ -217,8 +218,8 @@ type Site struct {
 }
 
 type Subcategory struct {
-	ID          pgtype.UUID      `json:"id"`
-	CategoryID  pgtype.UUID      `json:"category_id"`
+	ID          uuid.UUID        `json:"id"`
+	CategoryID  uuid.UUID        `json:"category_id"`
 	Name        string           `json:"name"`
 	Description pgtype.Text      `json:"description"`
 	Embedding   []float32        `json:"embedding"`

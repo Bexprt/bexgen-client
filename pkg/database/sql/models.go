@@ -6,6 +6,7 @@ package sql
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -101,11 +102,11 @@ func (ns NullRetryState) Value() (driver.Value, error) {
 
 type AuditEvent struct {
 	ID         uuid.UUID          `json:"id"`
-	ResourceID pgtype.UUID        `json:"resource_id"`
+	ResourceID uuid.UUID          `json:"resource_id"`
 	Action     string             `json:"action"`
 	Resource   string             `json:"resource"`
-	Actor      pgtype.Text        `json:"actor"`
-	Metadata   []byte             `json:"metadata"`
+	Actor      string             `json:"actor"`
+	Metadata   json.RawMessage    `json:"metadata"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 }
 
@@ -113,16 +114,16 @@ type Category struct {
 	ID          uuid.UUID        `json:"id"`
 	Name        string           `json:"name"`
 	Embedding   []float32        `json:"embedding"`
-	Description pgtype.Text      `json:"description"`
+	Description string           `json:"description"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
 }
 
 type Document struct {
 	ID             uuid.UUID          `json:"id"`
-	Filename       pgtype.Text        `json:"filename"`
-	Filepath       pgtype.Text        `json:"filepath"`
-	Classification pgtype.Text        `json:"classification"`
+	Filename       string             `json:"filename"`
+	Filepath       string             `json:"filepath"`
+	Classification string             `json:"classification"`
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
@@ -131,18 +132,18 @@ type DocumentStatus struct {
 	DocumentID uuid.UUID          `json:"document_id"`
 	StepName   string             `json:"step_name"`
 	State      string             `json:"state"`
-	Message    pgtype.Text        `json:"message"`
+	Message    string             `json:"message"`
 	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
 type FailedMessage struct {
 	ID              uuid.UUID          `json:"id"`
-	DocumentID      pgtype.UUID        `json:"document_id"`
+	DocumentID      uuid.UUID          `json:"document_id"`
 	TopicName       string             `json:"topic_name"`
 	ProtobufPayload []byte             `json:"protobuf_payload"`
-	Headers         []byte             `json:"headers"`
-	ErrorMessage    pgtype.Text        `json:"error_message"`
-	RetryCount      pgtype.Int4        `json:"retry_count"`
+	Headers         json.RawMessage    `json:"headers"`
+	ErrorMessage    string             `json:"error_message"`
+	RetryCount      *int32             `json:"retry_count"`
 	RetryState      NullRetryState     `json:"retry_state"`
 	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 	LastRetryAt     pgtype.Timestamptz `json:"last_retry_at"`
@@ -150,78 +151,78 @@ type FailedMessage struct {
 
 type Metadata struct {
 	ID                 int32              `json:"id"`
-	SiteID             pgtype.Text        `json:"site_id"`
-	DocumentType       pgtype.Text        `json:"document_type"`
-	Confidence         pgtype.Float8      `json:"confidence"`
+	SiteID             string             `json:"site_id"`
+	DocumentType       string             `json:"document_type"`
+	Confidence         *float64           `json:"confidence"`
 	DocumentDate       pgtype.Date        `json:"document_date"`
-	PortfolioType      pgtype.Text        `json:"portfolio_type"`
-	DocumentAmount     pgtype.Float8      `json:"document_amount"`
-	LicensedEntity     pgtype.Text        `json:"licensed_entity"`
-	LicensingAuthority pgtype.Text        `json:"licensing_authority"`
-	DocumentFolder     pgtype.Text        `json:"document_folder"`
-	Notes              pgtype.Text        `json:"notes"`
+	PortfolioType      string             `json:"portfolio_type"`
+	DocumentAmount     *float64           `json:"document_amount"`
+	LicensedEntity     string             `json:"licensed_entity"`
+	LicensingAuthority string             `json:"licensing_authority"`
+	DocumentFolder     string             `json:"document_folder"`
+	Notes              string             `json:"notes"`
 	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 }
 
 type ProcessingStep struct {
 	Name        string             `json:"name"`
-	Description pgtype.Text        `json:"description"`
+	Description string             `json:"description"`
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
 type Site struct {
 	ID                       int32              `json:"id"`
-	Pk                       pgtype.Text        `json:"pk"`
-	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
-	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
-	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Pk                       string             `json:"pk"`
+	EmbeddingLandlord        *pgvector.Vector   `json:"embedding_landlord"`
+	EmbeddingSiteAddress     *pgvector.Vector   `json:"embedding_site_address"`
+	EmbeddingLandlordAddress *pgvector.Vector   `json:"embedding_landlord_address"`
 	Timestamp                pgtype.Timestamptz `json:"timestamp"`
-	SiteCode                 pgtype.Text        `json:"site_code"`
-	PortfolioType            pgtype.Text        `json:"portfolio_type"`
-	Channel                  pgtype.Text        `json:"channel"`
-	UseType                  pgtype.Text        `json:"use_type"`
-	Name                     pgtype.Text        `json:"name"`
-	Status                   pgtype.Text        `json:"status"`
-	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
-	Address                  pgtype.Text        `json:"address"`
-	Address2                 pgtype.Text        `json:"address2"`
-	City                     pgtype.Text        `json:"city"`
-	State                    pgtype.Text        `json:"state"`
-	Zip                      pgtype.Text        `json:"zip"`
-	County                   pgtype.Text        `json:"county"`
-	SiteStatus               pgtype.Text        `json:"site_status"`
-	SiteType                 pgtype.Text        `json:"site_type"`
-	SiteClass                pgtype.Text        `json:"site_class"`
-	BuildStatus              pgtype.Text        `json:"build_status"`
-	Landlord                 pgtype.Text        `json:"landlord"`
-	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
-	LeaseCity                pgtype.Text        `json:"lease_city"`
-	LeaseState               pgtype.Text        `json:"lease_state"`
-	LeaseZip                 pgtype.Text        `json:"lease_zip"`
-	LeaseCounty              pgtype.Text        `json:"lease_county"`
-	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
-	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
-	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
-	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
-	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
-	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
-	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
-	StructureVendor          pgtype.Text        `json:"structure_vendor"`
-	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
-	GroundVendor             pgtype.Text        `json:"ground_vendor"`
-	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
-	Latitude                 pgtype.Float8      `json:"latitude"`
-	Longitude                pgtype.Float8      `json:"longitude"`
-	Sap                      pgtype.Text        `json:"sap"`
-	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
-	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+	SiteCode                 string             `json:"site_code"`
+	PortfolioType            string             `json:"portfolio_type"`
+	Channel                  string             `json:"channel"`
+	UseType                  string             `json:"use_type"`
+	Name                     string             `json:"name"`
+	Status                   string             `json:"status"`
+	SprintCascadeID          string             `json:"sprint_cascade_id"`
+	Address                  string             `json:"address"`
+	Address2                 string             `json:"address2"`
+	City                     string             `json:"city"`
+	State                    string             `json:"state"`
+	Zip                      string             `json:"zip"`
+	County                   string             `json:"county"`
+	SiteStatus               string             `json:"site_status"`
+	SiteType                 string             `json:"site_type"`
+	SiteClass                string             `json:"site_class"`
+	BuildStatus              string             `json:"build_status"`
+	Landlord                 string             `json:"landlord"`
+	LeaseAddress2            string             `json:"lease_address_2"`
+	LeaseCity                string             `json:"lease_city"`
+	LeaseState               string             `json:"lease_state"`
+	LeaseZip                 string             `json:"lease_zip"`
+	LeaseCounty              string             `json:"lease_county"`
+	LeaseVendor              string             `json:"lease_vendor"`
+	LeaseVendorRole          string             `json:"lease_vendor_role"`
+	LeaseVendorAddress       string             `json:"lease_vendor_address"`
+	LeaseVendorAddress2      string             `json:"lease_vendor_address2"`
+	LeaseVendorCity          string             `json:"lease_vendor_city"`
+	LeaseVendorState         string             `json:"lease_vendor_state"`
+	LeaseVendorZip           string             `json:"lease_vendor_zip"`
+	StructureVendor          string             `json:"structure_vendor"`
+	StructureVendorRole      string             `json:"structure_vendor_role"`
+	GroundVendor             string             `json:"ground_vendor"`
+	GroundVendorRole         string             `json:"ground_vendor_role"`
+	Latitude                 *float64           `json:"latitude"`
+	Longitude                *float64           `json:"longitude"`
+	Sap                      string             `json:"sap"`
+	BusinessLicenseIds       string             `json:"business_license_ids"`
+	LandlordReferenceID      string             `json:"landlord_reference_id"`
 }
 
 type Subcategory struct {
 	ID          uuid.UUID        `json:"id"`
 	CategoryID  uuid.UUID        `json:"category_id"`
 	Name        string           `json:"name"`
-	Description pgtype.Text      `json:"description"`
+	Description string           `json:"description"`
 	Embedding   []float32        `json:"embedding"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	UpdatedAt   pgtype.Timestamp `json:"updated_at"`

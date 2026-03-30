@@ -8,9 +8,11 @@ sql:
         package: "sql"
         out: "../pkg/database/sql"
         sql_package: "pgx/v5"
+
         emit_json_tags: true
-        emit_prepared_queries: true
         emit_interface: true
+        emit_prepared_queries: true
+        emit_pointers_for_null_types: true
 
         overrides:
           # =========================
@@ -21,24 +23,49 @@ sql:
               import: "github.com/google/uuid"
               type: "UUID"
 
+          - db_type: "uuid"
+            nullable: true
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+
           # =========================
-          # TEXT / STRING TYPES
+          # TEXT
           # =========================
           - db_type: "text"
+            go_type: "string"
+
+          - db_type: "text"
+            nullable: true
             go_type: "string"
 
           - db_type: "varchar"
             go_type: "string"
 
+          - db_type: "varchar"
+            nullable: true
+            go_type: "string"
+
           # =========================
-          # NUMERIC / FLOAT
+          # FLOAT
           # =========================
           - db_type: "float8"
+            go_type: "float64"
+
+          - db_type: "float8"
+            nullable: true
             go_type: "float64"
 
           - db_type: "float4"
             go_type: "float32"
 
+          - db_type: "float4"
+            nullable: true
+            go_type: "float32"
+
+          # =========================
+          # INT
+          # =========================
           - db_type: "int4"
             go_type: "int32"
 
@@ -46,7 +73,7 @@ sql:
             go_type: "int64"
 
           # =========================
-          # BOOLEAN
+          # BOOL
           # =========================
           - db_type: "bool"
             go_type: "bool"
@@ -77,6 +104,12 @@ sql:
               import: "encoding/json"
               type: "RawMessage"
 
+          - db_type: "jsonb"
+            nullable: true
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+
           # =========================
           # BYTEA
           # =========================
@@ -84,14 +117,10 @@ sql:
             go_type:
               type: "[]byte"
 
-          # =========================
-          # ENUMS → STRING
-          # =========================
-          - db_type: "processing_state"
-            go_type: "string"
-
-          - db_type: "retry_state"
-            go_type: "string"
+          - db_type: "bytea"
+            nullable: true
+            go_type:
+              type: "[]byte"
 
           # =========================
           # ARRAYS
@@ -103,3 +132,19 @@ sql:
           - db_type: "text[]"
             go_type:
               type: "[]string"
+
+          # =========================
+          # ENUMS
+          # =========================
+          - db_type: "processing_state"
+            go_type: "string"
+
+          - db_type: "retry_state"
+            go_type: "string"
+
+          # =========================
+          # PGVECTOR (IMPORTANT)
+          # =========================
+          - db_type: "vector"
+            go_type:
+              type: "[]float32"

@@ -23,8 +23,8 @@ WHERE resource = $1
 `
 
 type CountAuditByResourceParams struct {
-	Resource   string      `json:"resource"`
-	ResourceID pgtype.UUID `json:"resource_id"`
+	Resource   string    `json:"resource"`
+	ResourceID uuid.UUID `json:"resource_id"`
 }
 
 func (q *Queries) CountAuditByResource(ctx context.Context, arg CountAuditByResourceParams) (int64, error) {
@@ -120,11 +120,11 @@ RETURNING id, created_at
 `
 
 type CreateAuditEventParams struct {
-	Resource   string      `json:"resource"`
-	ResourceID pgtype.UUID `json:"resource_id"`
-	Action     string      `json:"action"`
-	Actor      pgtype.Text `json:"actor"`
-	Metadata   []byte      `json:"metadata"`
+	Resource   string          `json:"resource"`
+	ResourceID uuid.UUID       `json:"resource_id"`
+	Action     string          `json:"action"`
+	Actor      string          `json:"actor"`
+	Metadata   json.RawMessage `json:"metadata"`
 }
 
 type CreateAuditEventRow struct {
@@ -163,9 +163,9 @@ RETURNING id, name, embedding, description, created_at, updated_at
 `
 
 type CreateCategoryParams struct {
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
-	Embedding   []float32   `json:"embedding"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Embedding   []float32 `json:"embedding"`
 }
 
 func (q *Queries) CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error) {
@@ -195,10 +195,10 @@ RETURNING id, filename, filepath, classification, created_at, updated_at
 `
 
 type CreateDocumentParams struct {
-	ID             uuid.UUID   `json:"id"`
-	Filename       pgtype.Text `json:"filename"`
-	Filepath       pgtype.Text `json:"filepath"`
-	Classification pgtype.Text `json:"classification"`
+	ID             uuid.UUID `json:"id"`
+	Filename       string    `json:"filename"`
+	Filepath       string    `json:"filepath"`
+	Classification string    `json:"classification"`
 }
 
 // =====================================
@@ -243,16 +243,16 @@ RETURNING id
 `
 
 type CreateMetadataParams struct {
-	SiteID             pgtype.Text   `json:"site_id"`
-	DocumentType       pgtype.Text   `json:"document_type"`
-	Confidence         pgtype.Float8 `json:"confidence"`
-	DocumentDate       pgtype.Date   `json:"document_date"`
-	PortfolioType      pgtype.Text   `json:"portfolio_type"`
-	DocumentAmount     pgtype.Float8 `json:"document_amount"`
-	LicensedEntity     pgtype.Text   `json:"licensed_entity"`
-	LicensingAuthority pgtype.Text   `json:"licensing_authority"`
-	DocumentFolder     pgtype.Text   `json:"document_folder"`
-	Notes              pgtype.Text   `json:"notes"`
+	SiteID             string      `json:"site_id"`
+	DocumentType       string      `json:"document_type"`
+	Confidence         *float64    `json:"confidence"`
+	DocumentDate       pgtype.Date `json:"document_date"`
+	PortfolioType      string      `json:"portfolio_type"`
+	DocumentAmount     *float64    `json:"document_amount"`
+	LicensedEntity     string      `json:"licensed_entity"`
+	LicensingAuthority string      `json:"licensing_authority"`
+	DocumentFolder     string      `json:"document_folder"`
+	Notes              string      `json:"notes"`
 }
 
 func (q *Queries) CreateMetadata(ctx context.Context, arg CreateMetadataParams) (int32, error) {
@@ -284,8 +284,8 @@ ON CONFLICT (name) DO NOTHING
 `
 
 type CreateProcessingStepParams struct {
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 // =====================================
@@ -353,50 +353,50 @@ RETURNING id
 `
 
 type CreateSiteParams struct {
-	Pk                       pgtype.Text        `json:"pk"`
-	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
-	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
-	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Pk                       string             `json:"pk"`
+	EmbeddingLandlord        *pgvector.Vector   `json:"embedding_landlord"`
+	EmbeddingSiteAddress     *pgvector.Vector   `json:"embedding_site_address"`
+	EmbeddingLandlordAddress *pgvector.Vector   `json:"embedding_landlord_address"`
 	Timestamp                pgtype.Timestamptz `json:"timestamp"`
-	SiteCode                 pgtype.Text        `json:"site_code"`
-	PortfolioType            pgtype.Text        `json:"portfolio_type"`
-	Channel                  pgtype.Text        `json:"channel"`
-	UseType                  pgtype.Text        `json:"use_type"`
-	Name                     pgtype.Text        `json:"name"`
-	Status                   pgtype.Text        `json:"status"`
-	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
-	Address                  pgtype.Text        `json:"address"`
-	Address2                 pgtype.Text        `json:"address2"`
-	City                     pgtype.Text        `json:"city"`
-	State                    pgtype.Text        `json:"state"`
-	Zip                      pgtype.Text        `json:"zip"`
-	County                   pgtype.Text        `json:"county"`
-	SiteStatus               pgtype.Text        `json:"site_status"`
-	SiteType                 pgtype.Text        `json:"site_type"`
-	SiteClass                pgtype.Text        `json:"site_class"`
-	BuildStatus              pgtype.Text        `json:"build_status"`
-	Landlord                 pgtype.Text        `json:"landlord"`
-	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
-	LeaseCity                pgtype.Text        `json:"lease_city"`
-	LeaseState               pgtype.Text        `json:"lease_state"`
-	LeaseZip                 pgtype.Text        `json:"lease_zip"`
-	LeaseCounty              pgtype.Text        `json:"lease_county"`
-	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
-	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
-	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
-	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
-	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
-	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
-	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
-	StructureVendor          pgtype.Text        `json:"structure_vendor"`
-	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
-	GroundVendor             pgtype.Text        `json:"ground_vendor"`
-	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
-	Latitude                 pgtype.Float8      `json:"latitude"`
-	Longitude                pgtype.Float8      `json:"longitude"`
-	Sap                      pgtype.Text        `json:"sap"`
-	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
-	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+	SiteCode                 string             `json:"site_code"`
+	PortfolioType            string             `json:"portfolio_type"`
+	Channel                  string             `json:"channel"`
+	UseType                  string             `json:"use_type"`
+	Name                     string             `json:"name"`
+	Status                   string             `json:"status"`
+	SprintCascadeID          string             `json:"sprint_cascade_id"`
+	Address                  string             `json:"address"`
+	Address2                 string             `json:"address2"`
+	City                     string             `json:"city"`
+	State                    string             `json:"state"`
+	Zip                      string             `json:"zip"`
+	County                   string             `json:"county"`
+	SiteStatus               string             `json:"site_status"`
+	SiteType                 string             `json:"site_type"`
+	SiteClass                string             `json:"site_class"`
+	BuildStatus              string             `json:"build_status"`
+	Landlord                 string             `json:"landlord"`
+	LeaseAddress2            string             `json:"lease_address_2"`
+	LeaseCity                string             `json:"lease_city"`
+	LeaseState               string             `json:"lease_state"`
+	LeaseZip                 string             `json:"lease_zip"`
+	LeaseCounty              string             `json:"lease_county"`
+	LeaseVendor              string             `json:"lease_vendor"`
+	LeaseVendorRole          string             `json:"lease_vendor_role"`
+	LeaseVendorAddress       string             `json:"lease_vendor_address"`
+	LeaseVendorAddress2      string             `json:"lease_vendor_address2"`
+	LeaseVendorCity          string             `json:"lease_vendor_city"`
+	LeaseVendorState         string             `json:"lease_vendor_state"`
+	LeaseVendorZip           string             `json:"lease_vendor_zip"`
+	StructureVendor          string             `json:"structure_vendor"`
+	StructureVendorRole      string             `json:"structure_vendor_role"`
+	GroundVendor             string             `json:"ground_vendor"`
+	GroundVendorRole         string             `json:"ground_vendor_role"`
+	Latitude                 *float64           `json:"latitude"`
+	Longitude                *float64           `json:"longitude"`
+	Sap                      string             `json:"sap"`
+	BusinessLicenseIds       string             `json:"business_license_ids"`
+	LandlordReferenceID      string             `json:"landlord_reference_id"`
 }
 
 // =========================================
@@ -471,10 +471,10 @@ RETURNING id, category_id, name, description, embedding, created_at, updated_at
 `
 
 type CreateSubcategoryParams struct {
-	CategoryID  uuid.UUID   `json:"category_id"`
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
-	Embedding   []float32   `json:"embedding"`
+	CategoryID  uuid.UUID `json:"category_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Embedding   []float32 `json:"embedding"`
 }
 
 func (q *Queries) CreateSubcategory(ctx context.Context, arg CreateSubcategoryParams) (Subcategory, error) {
@@ -579,9 +579,9 @@ LIMIT $2 OFFSET $3
 `
 
 type GetAuditByActorParams struct {
-	Actor  pgtype.Text `json:"actor"`
-	Limit  int32       `json:"limit"`
-	Offset int32       `json:"offset"`
+	Actor  string `json:"actor"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 func (q *Queries) GetAuditByActor(ctx context.Context, arg GetAuditByActorParams) ([]AuditEvent, error) {
@@ -664,10 +664,10 @@ LIMIT $3 OFFSET $4
 `
 
 type GetAuditByResourceParams struct {
-	Resource   string      `json:"resource"`
-	ResourceID pgtype.UUID `json:"resource_id"`
-	Limit      int32       `json:"limit"`
-	Offset     int32       `json:"offset"`
+	Resource   string    `json:"resource"`
+	ResourceID uuid.UUID `json:"resource_id"`
+	Limit      int32     `json:"limit"`
+	Offset     int32     `json:"offset"`
 }
 
 func (q *Queries) GetAuditByResource(ctx context.Context, arg GetAuditByResourceParams) ([]AuditEvent, error) {
@@ -763,7 +763,7 @@ LIMIT $4
 
 type GetAuditCursorParams struct {
 	Resource   string             `json:"resource"`
-	ResourceID pgtype.UUID        `json:"resource_id"`
+	ResourceID uuid.UUID          `json:"resource_id"`
 	CreatedAt  pgtype.Timestamptz `json:"created_at"`
 	Limit      int32              `json:"limit"`
 }
@@ -1028,7 +1028,7 @@ SELECT id, site_id, document_type, confidence, document_date, portfolio_type, do
 WHERE document_type = $1
 `
 
-func (q *Queries) GetMetadataByDocumentType(ctx context.Context, documentType pgtype.Text) ([]Metadata, error) {
+func (q *Queries) GetMetadataByDocumentType(ctx context.Context, documentType string) ([]Metadata, error) {
 	rows, err := q.db.Query(ctx, getMetadataByDocumentType, documentType)
 	if err != nil {
 		return nil, err
@@ -1091,7 +1091,7 @@ SELECT id, site_id, document_type, confidence, document_date, portfolio_type, do
 WHERE portfolio_type = $1
 `
 
-func (q *Queries) GetMetadataByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]Metadata, error) {
+func (q *Queries) GetMetadataByPortfolioType(ctx context.Context, portfolioType string) ([]Metadata, error) {
 	rows, err := q.db.Query(ctx, getMetadataByPortfolioType, portfolioType)
 	if err != nil {
 		return nil, err
@@ -1129,7 +1129,7 @@ SELECT id, site_id, document_type, confidence, document_date, portfolio_type, do
 WHERE site_id = $1
 `
 
-func (q *Queries) GetMetadataBySiteID(ctx context.Context, siteID pgtype.Text) ([]Metadata, error) {
+func (q *Queries) GetMetadataBySiteID(ctx context.Context, siteID string) ([]Metadata, error) {
 	rows, err := q.db.Query(ctx, getMetadataBySiteID, siteID)
 	if err != nil {
 		return nil, err
@@ -1230,20 +1230,20 @@ WHERE pk = $1
 `
 
 type GetSiteByPKRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
 // =========================================
 // READ QUERIES (ONLY REQUESTED FIELDS)
 // =========================================
-func (q *Queries) GetSiteByPK(ctx context.Context, pk pgtype.Text) (GetSiteByPKRow, error) {
+func (q *Queries) GetSiteByPK(ctx context.Context, pk string) (GetSiteByPKRow, error) {
 	row := q.db.QueryRow(ctx, getSiteByPK, pk)
 	var i GetSiteByPKRow
 	err := row.Scan(
@@ -1274,17 +1274,17 @@ WHERE address = $1
 `
 
 type GetSitesByAddressRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesByAddress(ctx context.Context, address pgtype.Text) ([]GetSitesByAddressRow, error) {
+func (q *Queries) GetSitesByAddress(ctx context.Context, address string) ([]GetSitesByAddressRow, error) {
 	rows, err := q.db.Query(ctx, getSitesByAddress, address)
 	if err != nil {
 		return nil, err
@@ -1328,17 +1328,17 @@ WHERE landlord = $1
 `
 
 type GetSitesByLandlordRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesByLandlord(ctx context.Context, landlord pgtype.Text) ([]GetSitesByLandlordRow, error) {
+func (q *Queries) GetSitesByLandlord(ctx context.Context, landlord string) ([]GetSitesByLandlordRow, error) {
 	rows, err := q.db.Query(ctx, getSitesByLandlord, landlord)
 	if err != nil {
 		return nil, err
@@ -1382,17 +1382,17 @@ WHERE portfolio_type = $1
 `
 
 type GetSitesByPortfolioTypeRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]GetSitesByPortfolioTypeRow, error) {
+func (q *Queries) GetSitesByPortfolioType(ctx context.Context, portfolioType string) ([]GetSitesByPortfolioTypeRow, error) {
 	rows, err := q.db.Query(ctx, getSitesByPortfolioType, portfolioType)
 	if err != nil {
 		return nil, err
@@ -1436,17 +1436,17 @@ WHERE sap = $1
 `
 
 type GetSitesBySAPRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesBySAP(ctx context.Context, sap pgtype.Text) ([]GetSitesBySAPRow, error) {
+func (q *Queries) GetSitesBySAP(ctx context.Context, sap string) ([]GetSitesBySAPRow, error) {
 	rows, err := q.db.Query(ctx, getSitesBySAP, sap)
 	if err != nil {
 		return nil, err
@@ -1490,17 +1490,17 @@ WHERE site_code = $1
 `
 
 type GetSitesBySiteCodeRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesBySiteCode(ctx context.Context, siteCode pgtype.Text) ([]GetSitesBySiteCodeRow, error) {
+func (q *Queries) GetSitesBySiteCode(ctx context.Context, siteCode string) ([]GetSitesBySiteCodeRow, error) {
 	rows, err := q.db.Query(ctx, getSitesBySiteCode, siteCode)
 	if err != nil {
 		return nil, err
@@ -1544,17 +1544,17 @@ WHERE state = $1
 `
 
 type GetSitesByStateRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesByState(ctx context.Context, state pgtype.Text) ([]GetSitesByStateRow, error) {
+func (q *Queries) GetSitesByState(ctx context.Context, state string) ([]GetSitesByStateRow, error) {
 	rows, err := q.db.Query(ctx, getSitesByState, state)
 	if err != nil {
 		return nil, err
@@ -1598,17 +1598,17 @@ WHERE zip = $1
 `
 
 type GetSitesByZipRow struct {
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string `json:"pk"`
+	SiteCode      string `json:"site_code"`
+	Address       string `json:"address"`
+	Zip           string `json:"zip"`
+	State         string `json:"state"`
+	PortfolioType string `json:"portfolio_type"`
+	Sap           string `json:"sap"`
+	Landlord      string `json:"landlord"`
 }
 
-func (q *Queries) GetSitesByZip(ctx context.Context, zip pgtype.Text) ([]GetSitesByZipRow, error) {
+func (q *Queries) GetSitesByZip(ctx context.Context, zip string) ([]GetSitesByZipRow, error) {
 	rows, err := q.db.Query(ctx, getSitesByZip, zip)
 	if err != nil {
 		return nil, err
@@ -1664,11 +1664,11 @@ RETURNING id, document_id, topic_name, protobuf_payload, headers, error_message,
 `
 
 type InsertFailedMessageParams struct {
-	DocumentID      pgtype.UUID `json:"document_id"`
-	TopicName       string      `json:"topic_name"`
-	ProtobufPayload []byte      `json:"protobuf_payload"`
-	Headers         []byte      `json:"headers"`
-	ErrorMessage    pgtype.Text `json:"error_message"`
+	DocumentID      uuid.UUID       `json:"document_id"`
+	TopicName       string          `json:"topic_name"`
+	ProtobufPayload []byte          `json:"protobuf_payload"`
+	Headers         json.RawMessage `json:"headers"`
+	ErrorMessage    string          `json:"error_message"`
 }
 
 // =====================================
@@ -1756,7 +1756,7 @@ type ListSubcategoriesRow struct {
 	ID          uuid.UUID        `json:"id"`
 	Name        string           `json:"name"`
 	Category    string           `json:"category"`
-	Description pgtype.Text      `json:"description"`
+	Description string           `json:"description"`
 	Embedding   []float32        `json:"embedding"`
 	CreatedAt   pgtype.Timestamp `json:"created_at"`
 	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
@@ -1802,10 +1802,10 @@ ORDER BY s.name
 `
 
 type ListSubcategoriesByCategoryRow struct {
-	ID          uuid.UUID   `json:"id"`
-	Name        string      `json:"name"`
-	Description pgtype.Text `json:"description"`
-	Embedding   []float32   `json:"embedding"`
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Embedding   []float32 `json:"embedding"`
 }
 
 func (q *Queries) ListSubcategoriesByCategory(ctx context.Context, categoryID uuid.UUID) ([]ListSubcategoriesByCategoryRow, error) {
@@ -1880,20 +1880,20 @@ LIMIT $2
 `
 
 type SimilarLandlordParams struct {
-	EmbeddingLandlord pgvector.Vector `json:"embedding_landlord"`
-	Limit             int32           `json:"limit"`
+	EmbeddingLandlord *pgvector.Vector `json:"embedding_landlord"`
+	Limit             int32            `json:"limit"`
 }
 
 type SimilarLandlordRow struct {
 	ID            int32       `json:"id"`
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string      `json:"pk"`
+	SiteCode      string      `json:"site_code"`
+	Address       string      `json:"address"`
+	Zip           string      `json:"zip"`
+	State         string      `json:"state"`
+	PortfolioType string      `json:"portfolio_type"`
+	Sap           string      `json:"sap"`
+	Landlord      string      `json:"landlord"`
 	Distance      interface{} `json:"distance"`
 }
 
@@ -1950,20 +1950,20 @@ LIMIT $2
 `
 
 type SimilarLandlordAddressParams struct {
-	EmbeddingLandlordAddress pgvector.Vector `json:"embedding_landlord_address"`
-	Limit                    int32           `json:"limit"`
+	EmbeddingLandlordAddress *pgvector.Vector `json:"embedding_landlord_address"`
+	Limit                    int32            `json:"limit"`
 }
 
 type SimilarLandlordAddressRow struct {
 	ID            int32       `json:"id"`
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string      `json:"pk"`
+	SiteCode      string      `json:"site_code"`
+	Address       string      `json:"address"`
+	Zip           string      `json:"zip"`
+	State         string      `json:"state"`
+	PortfolioType string      `json:"portfolio_type"`
+	Sap           string      `json:"sap"`
+	Landlord      string      `json:"landlord"`
 	Distance      interface{} `json:"distance"`
 }
 
@@ -2017,20 +2017,20 @@ LIMIT $2
 `
 
 type SimilarSiteAddressParams struct {
-	EmbeddingSiteAddress pgvector.Vector `json:"embedding_site_address"`
-	Limit                int32           `json:"limit"`
+	EmbeddingSiteAddress *pgvector.Vector `json:"embedding_site_address"`
+	Limit                int32            `json:"limit"`
 }
 
 type SimilarSiteAddressRow struct {
 	ID            int32       `json:"id"`
-	Pk            pgtype.Text `json:"pk"`
-	SiteCode      pgtype.Text `json:"site_code"`
-	Address       pgtype.Text `json:"address"`
-	Zip           pgtype.Text `json:"zip"`
-	State         pgtype.Text `json:"state"`
-	PortfolioType pgtype.Text `json:"portfolio_type"`
-	Sap           pgtype.Text `json:"sap"`
-	Landlord      pgtype.Text `json:"landlord"`
+	Pk            string      `json:"pk"`
+	SiteCode      string      `json:"site_code"`
+	Address       string      `json:"address"`
+	Zip           string      `json:"zip"`
+	State         string      `json:"state"`
+	PortfolioType string      `json:"portfolio_type"`
+	Sap           string      `json:"sap"`
+	Landlord      string      `json:"landlord"`
 	Distance      interface{} `json:"distance"`
 }
 
@@ -2076,10 +2076,10 @@ AND step_name = $2
 `
 
 type UpdateDocumentStatusParams struct {
-	DocumentID uuid.UUID   `json:"document_id"`
-	StepName   string      `json:"step_name"`
-	State      string      `json:"state"`
-	Message    pgtype.Text `json:"message"`
+	DocumentID uuid.UUID `json:"document_id"`
+	StepName   string    `json:"step_name"`
+	State      string    `json:"state"`
+	Message    string    `json:"message"`
 }
 
 func (q *Queries) UpdateDocumentStatus(ctx context.Context, arg UpdateDocumentStatusParams) error {
@@ -2099,8 +2099,8 @@ WHERE id = $1
 `
 
 type UpdateLandlordAddressEmbeddingParams struct {
-	ID                       int32           `json:"id"`
-	EmbeddingLandlordAddress pgvector.Vector `json:"embedding_landlord_address"`
+	ID                       int32            `json:"id"`
+	EmbeddingLandlordAddress *pgvector.Vector `json:"embedding_landlord_address"`
 }
 
 func (q *Queries) UpdateLandlordAddressEmbedding(ctx context.Context, arg UpdateLandlordAddressEmbeddingParams) error {
@@ -2116,8 +2116,8 @@ WHERE id = $1
 `
 
 type UpdateLandlordEmbeddingParams struct {
-	ID                int32           `json:"id"`
-	EmbeddingLandlord pgvector.Vector `json:"embedding_landlord"`
+	ID                int32            `json:"id"`
+	EmbeddingLandlord *pgvector.Vector `json:"embedding_landlord"`
 }
 
 // =========================================
@@ -2144,17 +2144,17 @@ WHERE id = $1
 `
 
 type UpdateMetadataParams struct {
-	ID                 int32         `json:"id"`
-	SiteID             pgtype.Text   `json:"site_id"`
-	DocumentType       pgtype.Text   `json:"document_type"`
-	Confidence         pgtype.Float8 `json:"confidence"`
-	DocumentDate       pgtype.Date   `json:"document_date"`
-	PortfolioType      pgtype.Text   `json:"portfolio_type"`
-	DocumentAmount     pgtype.Float8 `json:"document_amount"`
-	LicensedEntity     pgtype.Text   `json:"licensed_entity"`
-	LicensingAuthority pgtype.Text   `json:"licensing_authority"`
-	DocumentFolder     pgtype.Text   `json:"document_folder"`
-	Notes              pgtype.Text   `json:"notes"`
+	ID                 int32       `json:"id"`
+	SiteID             string      `json:"site_id"`
+	DocumentType       string      `json:"document_type"`
+	Confidence         *float64    `json:"confidence"`
+	DocumentDate       pgtype.Date `json:"document_date"`
+	PortfolioType      string      `json:"portfolio_type"`
+	DocumentAmount     *float64    `json:"document_amount"`
+	LicensedEntity     string      `json:"licensed_entity"`
+	LicensingAuthority string      `json:"licensing_authority"`
+	DocumentFolder     string      `json:"document_folder"`
+	Notes              string      `json:"notes"`
 }
 
 func (q *Queries) UpdateMetadata(ctx context.Context, arg UpdateMetadataParams) error {
@@ -2226,50 +2226,50 @@ WHERE id = $1
 
 type UpdateSiteParams struct {
 	ID                       int32              `json:"id"`
-	Pk                       pgtype.Text        `json:"pk"`
-	EmbeddingLandlord        pgvector.Vector    `json:"embedding_landlord"`
-	EmbeddingSiteAddress     pgvector.Vector    `json:"embedding_site_address"`
-	EmbeddingLandlordAddress pgvector.Vector    `json:"embedding_landlord_address"`
+	Pk                       string             `json:"pk"`
+	EmbeddingLandlord        *pgvector.Vector   `json:"embedding_landlord"`
+	EmbeddingSiteAddress     *pgvector.Vector   `json:"embedding_site_address"`
+	EmbeddingLandlordAddress *pgvector.Vector   `json:"embedding_landlord_address"`
 	Timestamp                pgtype.Timestamptz `json:"timestamp"`
-	SiteCode                 pgtype.Text        `json:"site_code"`
-	PortfolioType            pgtype.Text        `json:"portfolio_type"`
-	Channel                  pgtype.Text        `json:"channel"`
-	UseType                  pgtype.Text        `json:"use_type"`
-	Name                     pgtype.Text        `json:"name"`
-	Status                   pgtype.Text        `json:"status"`
-	SprintCascadeID          pgtype.Text        `json:"sprint_cascade_id"`
-	Address                  pgtype.Text        `json:"address"`
-	Address2                 pgtype.Text        `json:"address2"`
-	City                     pgtype.Text        `json:"city"`
-	State                    pgtype.Text        `json:"state"`
-	Zip                      pgtype.Text        `json:"zip"`
-	County                   pgtype.Text        `json:"county"`
-	SiteStatus               pgtype.Text        `json:"site_status"`
-	SiteType                 pgtype.Text        `json:"site_type"`
-	SiteClass                pgtype.Text        `json:"site_class"`
-	BuildStatus              pgtype.Text        `json:"build_status"`
-	Landlord                 pgtype.Text        `json:"landlord"`
-	LeaseAddress2            pgtype.Text        `json:"lease_address_2"`
-	LeaseCity                pgtype.Text        `json:"lease_city"`
-	LeaseState               pgtype.Text        `json:"lease_state"`
-	LeaseZip                 pgtype.Text        `json:"lease_zip"`
-	LeaseCounty              pgtype.Text        `json:"lease_county"`
-	LeaseVendor              pgtype.Text        `json:"lease_vendor"`
-	LeaseVendorRole          pgtype.Text        `json:"lease_vendor_role"`
-	LeaseVendorAddress       pgtype.Text        `json:"lease_vendor_address"`
-	LeaseVendorAddress2      pgtype.Text        `json:"lease_vendor_address2"`
-	LeaseVendorCity          pgtype.Text        `json:"lease_vendor_city"`
-	LeaseVendorState         pgtype.Text        `json:"lease_vendor_state"`
-	LeaseVendorZip           pgtype.Text        `json:"lease_vendor_zip"`
-	StructureVendor          pgtype.Text        `json:"structure_vendor"`
-	StructureVendorRole      pgtype.Text        `json:"structure_vendor_role"`
-	GroundVendor             pgtype.Text        `json:"ground_vendor"`
-	GroundVendorRole         pgtype.Text        `json:"ground_vendor_role"`
-	Latitude                 pgtype.Float8      `json:"latitude"`
-	Longitude                pgtype.Float8      `json:"longitude"`
-	Sap                      pgtype.Text        `json:"sap"`
-	BusinessLicenseIds       pgtype.Text        `json:"business_license_ids"`
-	LandlordReferenceID      pgtype.Text        `json:"landlord_reference_id"`
+	SiteCode                 string             `json:"site_code"`
+	PortfolioType            string             `json:"portfolio_type"`
+	Channel                  string             `json:"channel"`
+	UseType                  string             `json:"use_type"`
+	Name                     string             `json:"name"`
+	Status                   string             `json:"status"`
+	SprintCascadeID          string             `json:"sprint_cascade_id"`
+	Address                  string             `json:"address"`
+	Address2                 string             `json:"address2"`
+	City                     string             `json:"city"`
+	State                    string             `json:"state"`
+	Zip                      string             `json:"zip"`
+	County                   string             `json:"county"`
+	SiteStatus               string             `json:"site_status"`
+	SiteType                 string             `json:"site_type"`
+	SiteClass                string             `json:"site_class"`
+	BuildStatus              string             `json:"build_status"`
+	Landlord                 string             `json:"landlord"`
+	LeaseAddress2            string             `json:"lease_address_2"`
+	LeaseCity                string             `json:"lease_city"`
+	LeaseState               string             `json:"lease_state"`
+	LeaseZip                 string             `json:"lease_zip"`
+	LeaseCounty              string             `json:"lease_county"`
+	LeaseVendor              string             `json:"lease_vendor"`
+	LeaseVendorRole          string             `json:"lease_vendor_role"`
+	LeaseVendorAddress       string             `json:"lease_vendor_address"`
+	LeaseVendorAddress2      string             `json:"lease_vendor_address2"`
+	LeaseVendorCity          string             `json:"lease_vendor_city"`
+	LeaseVendorState         string             `json:"lease_vendor_state"`
+	LeaseVendorZip           string             `json:"lease_vendor_zip"`
+	StructureVendor          string             `json:"structure_vendor"`
+	StructureVendorRole      string             `json:"structure_vendor_role"`
+	GroundVendor             string             `json:"ground_vendor"`
+	GroundVendorRole         string             `json:"ground_vendor_role"`
+	Latitude                 *float64           `json:"latitude"`
+	Longitude                *float64           `json:"longitude"`
+	Sap                      string             `json:"sap"`
+	BusinessLicenseIds       string             `json:"business_license_ids"`
+	LandlordReferenceID      string             `json:"landlord_reference_id"`
 }
 
 // =========================================
@@ -2333,8 +2333,8 @@ WHERE id = $1
 `
 
 type UpdateSiteAddressEmbeddingParams struct {
-	ID                   int32           `json:"id"`
-	EmbeddingSiteAddress pgvector.Vector `json:"embedding_site_address"`
+	ID                   int32            `json:"id"`
+	EmbeddingSiteAddress *pgvector.Vector `json:"embedding_site_address"`
 }
 
 func (q *Queries) UpdateSiteAddressEmbedding(ctx context.Context, arg UpdateSiteAddressEmbeddingParams) error {
@@ -2359,10 +2359,10 @@ DO UPDATE SET
 `
 
 type UpsertDocumentStatusParams struct {
-	DocumentID uuid.UUID   `json:"document_id"`
-	StepName   string      `json:"step_name"`
-	State      string      `json:"state"`
-	Message    pgtype.Text `json:"message"`
+	DocumentID uuid.UUID `json:"document_id"`
+	StepName   string    `json:"step_name"`
+	State      string    `json:"state"`
+	Message    string    `json:"message"`
 }
 
 // =====================================

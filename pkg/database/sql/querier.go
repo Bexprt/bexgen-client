@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -52,23 +51,23 @@ type Querier interface {
 	GetDocumentByID(ctx context.Context, id uuid.UUID) (Document, error)
 	GetDocumentStatuses(ctx context.Context, documentID uuid.UUID) ([]DocumentStatus, error)
 	GetDocumentsByStepAndState(ctx context.Context, arg GetDocumentsByStepAndStateParams) ([]DocumentStatus, error)
-	GetMetadataByDocumentType(ctx context.Context, documentType pgtype.Text) ([]Metadata, error)
+	GetMetadataByDocumentType(ctx context.Context, documentType string) ([]Metadata, error)
 	GetMetadataByID(ctx context.Context, id int32) (Metadata, error)
-	GetMetadataByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]Metadata, error)
-	GetMetadataBySiteID(ctx context.Context, siteID pgtype.Text) ([]Metadata, error)
+	GetMetadataByPortfolioType(ctx context.Context, portfolioType string) ([]Metadata, error)
+	GetMetadataBySiteID(ctx context.Context, siteID string) ([]Metadata, error)
 	GetPendingFailedMessages(ctx context.Context, limit int32) ([]FailedMessage, error)
 	GetProcessingStep(ctx context.Context, name string) (ProcessingStep, error)
 	// =========================================
 	// READ QUERIES (ONLY REQUESTED FIELDS)
 	// =========================================
-	GetSiteByPK(ctx context.Context, pk pgtype.Text) (GetSiteByPKRow, error)
-	GetSitesByAddress(ctx context.Context, address pgtype.Text) ([]GetSitesByAddressRow, error)
-	GetSitesByLandlord(ctx context.Context, landlord pgtype.Text) ([]GetSitesByLandlordRow, error)
-	GetSitesByPortfolioType(ctx context.Context, portfolioType pgtype.Text) ([]GetSitesByPortfolioTypeRow, error)
-	GetSitesBySAP(ctx context.Context, sap pgtype.Text) ([]GetSitesBySAPRow, error)
-	GetSitesBySiteCode(ctx context.Context, siteCode pgtype.Text) ([]GetSitesBySiteCodeRow, error)
-	GetSitesByState(ctx context.Context, state pgtype.Text) ([]GetSitesByStateRow, error)
-	GetSitesByZip(ctx context.Context, zip pgtype.Text) ([]GetSitesByZipRow, error)
+	GetSiteByPK(ctx context.Context, pk string) (GetSiteByPKRow, error)
+	GetSitesByAddress(ctx context.Context, address string) ([]GetSitesByAddressRow, error)
+	GetSitesByLandlord(ctx context.Context, landlord string) ([]GetSitesByLandlordRow, error)
+	GetSitesByPortfolioType(ctx context.Context, portfolioType string) ([]GetSitesByPortfolioTypeRow, error)
+	GetSitesBySAP(ctx context.Context, sap string) ([]GetSitesBySAPRow, error)
+	GetSitesBySiteCode(ctx context.Context, siteCode string) ([]GetSitesBySiteCodeRow, error)
+	GetSitesByState(ctx context.Context, state string) ([]GetSitesByStateRow, error)
+	GetSitesByZip(ctx context.Context, zip string) ([]GetSitesByZipRow, error)
 	IncrementRetryCount(ctx context.Context, id uuid.UUID) error
 	// =====================================
 	// FAILED MESSAGE STORAGE

@@ -19,9 +19,9 @@ func NewClient(ctx context.Context, cfg *config.RootYAML) (searchtypes.Index, er
 
 	switch cfg.Search.Driver {
 	case "opensearch":
-		return search.NewClient(ctx, cfg.Search)
+		return search.NewClientOpenSearch(ctx, cfg.Search)
 	case "elasticsearch":
-		return search.NewClient(ctx, cfg.Search)
+		return search.NewClientElasticSearch(ctx, cfg.Search)
 	default:
 		return nil, fmt.Errorf("unsupported driver: %s", cfg.Search.Driver)
 	}

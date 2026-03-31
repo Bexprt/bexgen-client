@@ -7,7 +7,7 @@ info:
     including vector search, status tracking, and audit logs.
 
 servers:
-  - url: https://api.example.com/v1
+  - url: https://bexgen.com/v1
 
 paths:
   /documents:
@@ -20,9 +20,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required:
-                - file
-                - user_email
+              required: [file, user_email]
               properties:
                 file:
                   type: string
@@ -33,254 +31,283 @@ paths:
       responses:
         "201":
           description: Document uploaded successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DocumentUploadResponse"
 
-  /documents/{id}:
+  /search:
     get:
-      summary: Get document by ID
-      operationId: getDocumentById
       parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Document details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Document"
-        "404":
-          description: Document not found
-
-  /documents/search:
-    get:
-      summary: Search documents (text search)
-      operationId: searchDocuments
-      parameters:
-        - name: query
+        - name: k
           in: query
           required: true
           schema:
             type: string
-        - name: user_email
-          in: query
-          required: false
-          schema:
-            type: string
-            format: email
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 10
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
       responses:
         "200":
           description: Search results
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SearchResponse"
+                type: array
+                items:
+                  $ref: "#/components/schemas/Document"
 
-  /documents/vector-search:
+  /status-distribution:
+    get:
+      summary: Returns document status distribution counts within a date range.
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Array of status distribution items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StatusDistribution"
+  /daily-progress:
+    get:
+      summary: Returns daily progress series data for a date range.
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        "200":
+          description: Daily progress series per day
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyProgressOutput"
+  /status-table:
+    get:
+      summary: Returns a paginated list of documents for the selected statuses and filters.
+      parameters:
+        - name: status
+          in: query
+          description: Comma-separated list of statuses to include
+          required: true
+          schema:
+            type: string
+        - name: pageIndex
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: pageSize
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: name
+          in: query
+          description: Filter documents by name (partial match)
+          required: false
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Field name to sort by
+          required: false
+          schema:
+            type: string
+        - name: isDesc
+          in: query
+          description: Sort descending when true
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Document status list with pagination metadata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetDocumentStatusOutput"
+  /audit:
+    get:
+      summary: Returns the list of audit log entries.
+      responses:
+        "200":
+          description: Array of audit log entries.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    userName:
+                      type: string
+                    userId:
+                      type: string
+                    creationDate:
+                      type: string
+                      format: date-time
+                    actionEn:
+                      type: string
+                    actionAr:
+                      type: string
+                    id:
+                      type: string
+                    params:
+                      type: string
     post:
-      summary: Vector similarity search
-      operationId: vectorSearchDocuments
+      summary: Creates a new audit entry.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VectorSearchRequest"
+              type: object
+              properties:
+                params:
+                  type: object
+                  description: Audit parameters (array or object)
+                action_en:
+                  type: string
+                action_ar:
+                  type: string
+                documentId:
+                  type: string
+                userId:
+                  type: string
+                username:
+                  type: string
       responses:
         "200":
-          description: Vector search results
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SearchResponse"
-
-  /documents/{id}/status:
-    get:
-      summary: Get document processing status
-      operationId: getDocumentStatus
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Document processing status
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DocumentStatus"
-
-  /documents/{id}/audit:
-    get:
-      summary: Get document audit log
-      operationId: getDocumentAudit
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Audit log entries
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuditResponse"
+          description: Audit entry recorded.
 
 components:
   schemas:
-    DocumentUploadResponse:
+    StatusDistribution:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        user_email:
-          type: string
-          format: email
         status:
           type: string
-          example: uploaded
-        created_at:
+        count:
+          type: integer
+        color:
           type: string
-          format: date-time
-
-    Document:
+        bg_color:
+          type: string
+        icon:
+          type: string
+    DailyProgressOutput:
       type: object
       properties:
-        id:
+        date:
           type: string
-          format: uuid
-        user_email:
-          type: string
-          format: email
-        filename:
-          type: string
-        content_type:
-          type: string
-        size_bytes:
-          type: integer
-        summary:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    SearchResponse:
-      type: object
-      properties:
-        total:
-          type: integer
-        results:
+          format: date
+        statuses:
           type: array
           items:
-            $ref: "#/components/schemas/SearchResult"
-
-    SearchResult:
+            $ref: "#/components/schemas/DailyProgressStatus"
+      required: [date, statuses]
+    DailyProgressStatus:
       type: object
       properties:
-        id:
+        status:
           type: string
-          format: uuid
-        score:
-          type: number
-        snippet:
-          type: string
-        summary:
-          type: string
-
-    VectorSearchRequest:
-      type: object
-      required:
-        - vector
-      properties:
-        text:
-          type: string
-        user_email:
-          type: string
-          format: email
-        top_k:
+        count:
           type: integer
-          default: 5
-
+        color:
+          type: string
     DocumentStatus:
       type: object
       properties:
-        document_id:
+        id:
           type: string
-          format: uuid
-        steps:
-          type: array
-          items:
-            $ref: "#/components/schemas/ProcessingStep"
-
-    ProcessingStep:
-      type: object
-      properties:
-        step_name:
+        name:
           type: string
-          example: ocr
-        state:
+        status:
           type: string
-          enum: [pending, processing, completed, failed]
-        message:
-          type: string
-        updated_at:
+        uploadDate:
           type: string
           format: date-time
-
-    AuditResponse:
-      type: object
-      properties:
-        document_id:
-          type: string
-          format: uuid
-        events:
-          type: array
-          items:
-            $ref: "#/components/schemas/AuditEvent"
-
-    AuditEvent:
-      type: object
-      properties:
-        event_id:
-          type: string
-          format: uuid
-        action:
-          type: string
-          example: document_uploaded
-        resource:
-          type: string
-        actor:
-          type: string
-        timestamp:
+        lastUpdate:
           type: string
           format: date-time
-        metadata:
+    GetDocumentStatusOutput:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentStatus"
+        totalCount:
+          type: integer
+        pageCount:
+          type: integer
+        pageIndex:
+          type: integer
+        pageSize:
+          type: integer
+    Document:
+      type: object
+      properties:
+        sourceLang:
+          type: string
+          enum: [ar, en]
+        translationOutputFolder:
+          type: string
+        bucket:
+          type: string
+        documentId:
+          type: string
+        name:
+          type: string
+        transJobId:
+          type: string
+        lines:
+          type: array
+          items:
+            type: string
+        classification:
           type: object
-          additionalProperties: true
+          properties:
+            department:
+              type: string
+            docName:
+              type: string
+            sector:
+              type: string
+            templateId:
+              type: string
+            templateName:
+              type: string

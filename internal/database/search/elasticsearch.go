@@ -58,7 +58,6 @@ func (t *SigV4Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		bodyBytes, _ = io.ReadAll(req.Body)
 	}
 
-	// Restore body for downstream use
 	req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 	creds, err := t.Credentials.Retrieve(req.Context())
@@ -141,8 +140,7 @@ func NewClientOpenSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtyp
 		}
 	}
 
-	// Create SigV4 transport
-	sigv4Transport, err := NewSigV4Transport(ctx, "us-east-1") // TODO: make region configurable
+	sigv4Transport, err := NewSigV4Transport(ctx, cfg.Options["region"].(string))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create sigv4 transport: %w", err)
 	}

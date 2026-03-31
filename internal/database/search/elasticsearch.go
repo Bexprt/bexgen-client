@@ -24,6 +24,24 @@ import (
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 )
 
+// OpenSearchCompat wraps any transport to replace the go-elasticsearch/v9
+// vendor content-type with standard application/json for OpenSearch compat.
+type OpenSearchCompat struct {
+	Inner http.RoundTripper
+}
+
+func (t *OpenSearchCompat) RoundTrip(req *http.Request) (*http.Response, error) {
+	ct := req.Header.Get("Content-Type")
+	if ct != "" && ct != "application/json" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	accept := req.Header.Get("Accept")
+	if accept != "" && accept != "application/json" {
+		req.Header.Set("Accept", "application/json")
+	}
+	return t.Inner.RoundTrip(req)
+}
+
 type SigV4Transport struct {
 	Transport   http.RoundTripper
 	Signer      *v4.Signer
@@ -117,7 +135,7 @@ func NewClientElasticSearch(ctx context.Context, cfg *cfg.FactoryConfig) (search
 		Addresses: []string{osCfg.Endpoint},
 		Username:  osCfg.Username,
 		Password:  osCfg.Password,
-		Transport: http.DefaultTransport,
+		Transport: &OpenSearchCompat{Inner: http.DefaultTransport},
 	}
 	client, err := elasticsearch.NewTypedClient(esCfg)
 	if err != nil {
@@ -149,7 +167,7 @@ func NewClientOpenSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtyp
 
 	esCfg := elasticsearch.Config{
 		Addresses: []string{osCfg.Endpoint},
-		Transport: sigv4Transport,
+		Transport: &OpenSearchCompat{Inner: sigv4Transport},
 	}
 
 	client, err := elasticsearch.NewTypedClient(esCfg)

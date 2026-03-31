@@ -39,7 +39,13 @@ func (t *OpenSearchCompat) RoundTrip(req *http.Request) (*http.Response, error) 
 	if accept != "" && accept != "application/json" {
 		req.Header.Set("Accept", "application/json")
 	}
-	return t.Inner.RoundTrip(req)
+	resp, err := t.Inner.RoundTrip(req)
+	if err != nil {
+		return resp, err
+	}
+	// Spoof the product header so go-elasticsearch/v9 doesn't reject OpenSearch.
+	resp.Header.Set("X-Elastic-Product", "Elasticsearch")
+	return resp, nil
 }
 
 type SigV4Transport struct {

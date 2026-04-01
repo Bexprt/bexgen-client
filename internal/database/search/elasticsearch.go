@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 
 	cfg "github.com/bexprt/bexgen-client/pkg/config"
 	searchtypes "github.com/bexprt/bexgen-client/pkg/database/search/types"
@@ -14,6 +16,43 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/densevectorsimilarity"
 )
+
+// OpenSearchCompat wraps an http.RoundTripper to fix two incompatibilities
+// between the go-elasticsearch/v9 client and OpenSearch:
+//  1. Rewrites the vendor Content-Type to standard application/json
+//  2. Injects the X-Elastic-Product response header that the client validates
+type OpenSearchCompat struct {
+	Wrapped http.RoundTripper
+}
+
+func (t *OpenSearchCompat) RoundTrip(req *http.Request) (*http.Response, error) {
+	ct := req.Header.Get("Content-Type")
+	if strings.HasPrefix(ct, "application/vnd.elasticsearch") {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	resp, err := t.Wrapped.RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Header.Set("X-Elastic-Product", "Elasticsearch")
+
+	// Also rewrite response content-type if OpenSearch sends something unexpected
+	rct := resp.Header.Get("Content-Type")
+	if rct != "" && !strings.Contains(rct, "application/json") {
+		resp.Header.Set("Content-Type", "application/json")
+	}
+
+	// Discard the body and set an empty one for HEAD requests to prevent client errors
+	if req.Method == http.MethodHead && resp.Body != nil {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+		resp.Body = http.NoBody
+	}
+
+	return resp, nil
+}
 
 type ElasticSearchClient struct {
 	client *elasticsearch.TypedClient
@@ -48,7 +87,7 @@ func NewClientElasticSearch(ctx context.Context, cfg *cfg.FactoryConfig) (search
 		Addresses: []string{osCfg.Endpoint},
 		Username:  osCfg.Username,
 		Password:  osCfg.Password,
-		Transport: http.DefaultTransport,
+		Transport: &OpenSearchCompat{Wrapped: http.DefaultTransport},
 	}
 	client, err := elasticsearch.NewTypedClient(esCfg)
 	if err != nil {

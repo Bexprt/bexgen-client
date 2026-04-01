@@ -1,15 +1,10 @@
 package search
 
 import (
-	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"time"
 
 	cfg "github.com/bexprt/bexgen-client/pkg/config"
 	searchtypes "github.com/bexprt/bexgen-client/pkg/database/search/types"
@@ -18,77 +13,14 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/esdsl"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/densevectorsimilarity"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 )
 
-type SigV4Transport struct {
-	Transport   http.RoundTripper
-	Signer      *v4.Signer
-	Credentials aws.CredentialsProvider
-	Region      string
-	Service     string
-}
-
-func NewSigV4Transport(ctx context.Context, region string) (*SigV4Transport, error) {
-	cfg, err := awsconfig.LoadDefaultConfig(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &SigV4Transport{
-		Transport:   http.DefaultTransport,
-		Signer:      v4.NewSigner(),
-		Credentials: cfg.Credentials,
-		Region:      region,
-		Service:     "es",
-	}, nil
-}
-
-func hashPayload(body []byte) string {
-	hash := sha256.Sum256(body)
-	return hex.EncodeToString(hash[:])
-}
-
-func (t *SigV4Transport) RoundTrip(req *http.Request) (*http.Response, error) {
-	var bodyBytes []byte
-	if req.Body != nil {
-		bodyBytes, _ = io.ReadAll(req.Body)
-	}
-
-	req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
-
-	creds, err := t.Credentials.Retrieve(req.Context())
-	if err != nil {
-		return nil, err
-	}
-
-	payloadHash := hashPayload(bodyBytes)
-
-	err = t.Signer.SignHTTP(
-		req.Context(),
-		creds,
-		req,
-		payloadHash,
-		t.Service,
-		t.Region,
-		time.Now(),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return t.Transport.RoundTrip(req)
-}
-
-type OpenSearchClient struct {
+type ElasticSearchClient struct {
 	client *elasticsearch.TypedClient
 	index  string
 }
 
-type OpenSearchConfig struct {
+type ElasticSearchConfig struct {
 	Endpoint string `yaml:"endpoint" mapstructure:"endpoint"`
 	Username string `yaml:"username" mapstructure:"username"`
 	Password string `yaml:"password" mapstructure:"password"`
@@ -96,7 +28,7 @@ type OpenSearchConfig struct {
 }
 
 func NewClientElasticSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtypes.Index, error) {
-	osCfg := &OpenSearchConfig{}
+	osCfg := &ElasticSearchConfig{}
 	if len(cfg.Options) > 0 {
 		if endpoint, ok := cfg.Options["endpoint"].(string); ok {
 			osCfg.Endpoint = endpoint
@@ -123,45 +55,13 @@ func NewClientElasticSearch(ctx context.Context, cfg *cfg.FactoryConfig) (search
 		return nil, fmt.Errorf("failed to create Elasticsearch client: %w", err)
 	}
 
-	return &OpenSearchClient{
+	return &ElasticSearchClient{
 		client: client,
 		index:  osCfg.Index,
 	}, nil
 }
 
-func NewClientOpenSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtypes.Index, error) {
-	osCfg := &OpenSearchConfig{}
-	if len(cfg.Options) > 0 {
-		if endpoint, ok := cfg.Options["endpoint"].(string); ok {
-			osCfg.Endpoint = endpoint
-		}
-		if index, ok := cfg.Options["index"].(string); ok {
-			osCfg.Index = index
-		}
-	}
-
-	sigv4Transport, err := NewSigV4Transport(ctx, cfg.Options["region"].(string))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create sigv4 transport: %w", err)
-	}
-
-	esCfg := elasticsearch.Config{
-		Addresses: []string{osCfg.Endpoint},
-		Transport: sigv4Transport,
-	}
-
-	client, err := elasticsearch.NewTypedClient(esCfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create Elasticsearch client: %w", err)
-	}
-
-	return &OpenSearchClient{
-		client: client,
-		index:  osCfg.Index,
-	}, nil
-}
-
-func (c *OpenSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOptions) error {
+func (c *ElasticSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOptions) error {
 	if opts == nil {
 		return fmt.Errorf("index options cannot be nil")
 	}
@@ -200,7 +100,7 @@ func (c *OpenSearchClient) Create(ctx context.Context, opts *searchtypes.IndexOp
 	return nil
 }
 
-func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Document) error {
+func (c *ElasticSearchClient) Insert(ctx context.Context, docs *searchtypes.Document) error {
 	_, err := c.client.
 		Index(c.index).
 		Id(docs.ID).
@@ -212,7 +112,7 @@ func (c *OpenSearchClient) Insert(ctx context.Context, docs *searchtypes.Documen
 	return nil
 }
 
-func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Document) error {
+func (c *ElasticSearchClient) Update(ctx context.Context, docs *searchtypes.Document) error {
 	_, err := c.client.
 		Update(c.index, docs.ID).
 		Doc(docs).
@@ -223,7 +123,7 @@ func (c *OpenSearchClient) Update(ctx context.Context, docs *searchtypes.Documen
 	return nil
 }
 
-func (c *OpenSearchClient) Delete(ctx context.Context, id string) error {
+func (c *ElasticSearchClient) Delete(ctx context.Context, id string) error {
 	_, err := c.client.
 		Delete(c.index, id).
 		Do(ctx)
@@ -233,7 +133,7 @@ func (c *OpenSearchClient) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *OpenSearchClient) GetByID(ctx context.Context, id string) (*searchtypes.Document, error) {
+func (c *ElasticSearchClient) GetByID(ctx context.Context, id string) (*searchtypes.Document, error) {
 	res, err := c.client.
 		Get(c.index, id).
 		Do(ctx)
@@ -253,7 +153,7 @@ func (c *OpenSearchClient) GetByID(ctx context.Context, id string) (*searchtypes
 	return &doc, nil
 }
 
-func (c *OpenSearchClient) VectorSearch(
+func (c *ElasticSearchClient) VectorSearch(
 	ctx context.Context,
 	query []float32,
 	opts *searchtypes.SearchOptions,
@@ -363,7 +263,7 @@ func (c *OpenSearchClient) VectorSearch(
 	return results, nil
 }
 
-func (c *OpenSearchClient) Search(
+func (c *ElasticSearchClient) Search(
 	ctx context.Context,
 	query string,
 	key searchtypes.SearchFileds,
@@ -463,7 +363,7 @@ func (c *OpenSearchClient) Search(
 	return results, nil
 }
 
-func (c *OpenSearchClient) Close(ctx context.Context) error {
+func (c *ElasticSearchClient) Close(ctx context.Context) error {
 	if err := c.client.Close(ctx); err != nil {
 		return err
 	}

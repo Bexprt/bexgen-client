@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CountAuditByResource(ctx context.Context, arg CountAuditByResourceParams) (int64, error)
+	CountDocumentStatusTable(ctx context.Context, arg CountDocumentStatusTableParams) (int64, error)
 	// =====================================
 	// DASHBOARD / MONITORING
 	// =====================================
@@ -48,7 +49,9 @@ type Querier interface {
 	GetAuditFiltered(ctx context.Context, arg GetAuditFilteredParams) ([]AuditEvent, error)
 	GetAuditTimeline(ctx context.Context, arg GetAuditTimelineParams) ([]AuditEvent, error)
 	GetCategoryByName(ctx context.Context, name string) (Category, error)
+	GetDailyProgress(ctx context.Context, arg GetDailyProgressParams) ([]GetDailyProgressRow, error)
 	GetDocumentByID(ctx context.Context, id uuid.UUID) (Document, error)
+	GetDocumentStatusTable(ctx context.Context, arg GetDocumentStatusTableParams) ([]GetDocumentStatusTableRow, error)
 	GetDocumentStatuses(ctx context.Context, documentID uuid.UUID) ([]DocumentStatus, error)
 	GetDocumentsByStepAndState(ctx context.Context, arg GetDocumentsByStepAndStateParams) ([]DocumentStatus, error)
 	GetMetadataByDocumentType(ctx context.Context, documentType string) ([]Metadata, error)
@@ -68,6 +71,7 @@ type Querier interface {
 	GetSitesBySiteCode(ctx context.Context, siteCode string) ([]GetSitesBySiteCodeRow, error)
 	GetSitesByState(ctx context.Context, state string) ([]GetSitesByStateRow, error)
 	GetSitesByZip(ctx context.Context, zip string) ([]GetSitesByZipRow, error)
+	GetStatusDistribution(ctx context.Context, arg GetStatusDistributionParams) ([]GetStatusDistributionRow, error)
 	IncrementRetryCount(ctx context.Context, id uuid.UUID) error
 	// =====================================
 	// FAILED MESSAGE STORAGE

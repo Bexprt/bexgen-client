@@ -692,3 +692,52 @@ WHERE document_type = $1;
 -- name: GetMetadataByPortfolioType :many
 SELECT * FROM metadata
 WHERE portfolio_type = $1;
+
+-- name: GetStatusDistribution :many
+SELECT 
+  ds.state AS status,
+  COUNT(*)::int AS count
+FROM document_status ds
+JOIN documents d ON d.id = ds.document_id
+WHERE ds.updated_at BETWEEN $1 AND $2
+GROUP BY ds.state;
+
+-- name: GetDailyProgress :many
+SELECT 
+  DATE(ds.updated_at)::text AS date,
+  ds.state AS status,
+  COUNT(*)::int AS count
+FROM document_status ds
+WHERE ds.updated_at BETWEEN $1 AND $2
+GROUP BY DATE(ds.updated_at), ds.state
+ORDER BY DATE(ds.updated_at) ASC;
+
+-- name: GetDocumentStatusTable :many
+SELECT 
+  d.id,
+  d.filename,
+  ds.state AS status,
+  d.created_at,
+  ds.updated_at
+FROM documents d
+JOIN document_status ds ON d.id = ds.document_id
+WHERE ds.state = ANY($1::processing_state[])
+  AND d.created_at BETWEEN $2 AND $3
+  AND ($4::text IS NULL OR d.filename ILIKE '%' || $4 || '%')
+ORDER BY 
+  CASE WHEN $5 = 'name_asc' THEN d.filename END ASC,
+  CASE WHEN $5 = 'name_desc' THEN d.filename END DESC,
+  CASE WHEN $5 = 'date_asc' THEN d.created_at END ASC,
+  CASE WHEN $5 = 'date_desc' THEN d.created_at END DESC,
+  d.created_at DESC
+LIMIT $6 OFFSET $7;
+
+-- name: CountDocumentStatusTable :one
+SELECT COUNT(*)
+FROM documents d
+JOIN document_status ds ON d.id = ds.document_id
+WHERE ds.state = ANY($1::processing_state[])
+  AND d.created_at BETWEEN $2 AND $3
+  AND ($4::text IS NULL OR d.filename ILIKE '%' || $4 || '%');
+
+

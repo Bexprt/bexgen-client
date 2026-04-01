@@ -34,6 +34,34 @@ func (q *Queries) CountAuditByResource(ctx context.Context, arg CountAuditByReso
 	return count, err
 }
 
+const countDocumentStatusTable = `-- name: CountDocumentStatusTable :one
+SELECT COUNT(*)
+FROM documents d
+JOIN document_status ds ON d.id = ds.document_id
+WHERE ds.state = ANY($1::processing_state[])
+  AND d.created_at BETWEEN $2 AND $3
+  AND ($4::text IS NULL OR d.filename ILIKE '%' || $4 || '%')
+`
+
+type CountDocumentStatusTableParams struct {
+	Column1     []string           `json:"column_1"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+	Column4     string             `json:"column_4"`
+}
+
+func (q *Queries) CountDocumentStatusTable(ctx context.Context, arg CountDocumentStatusTableParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countDocumentStatusTable,
+		arg.Column1,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Column4,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countDocumentsByStepAndState = `-- name: CountDocumentsByStepAndState :many
 
 SELECT
@@ -923,6 +951,48 @@ func (q *Queries) GetCategoryByName(ctx context.Context, name string) (Category,
 	return i, err
 }
 
+const getDailyProgress = `-- name: GetDailyProgress :many
+SELECT 
+  DATE(ds.updated_at)::text AS date,
+  ds.state AS status,
+  COUNT(*)::int AS count
+FROM document_status ds
+WHERE ds.updated_at BETWEEN $1 AND $2
+GROUP BY DATE(ds.updated_at), ds.state
+ORDER BY DATE(ds.updated_at) ASC
+`
+
+type GetDailyProgressParams struct {
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	UpdatedAt_2 pgtype.Timestamptz `json:"updated_at_2"`
+}
+
+type GetDailyProgressRow struct {
+	Date   string `json:"date"`
+	Status string `json:"status"`
+	Count  int32  `json:"count"`
+}
+
+func (q *Queries) GetDailyProgress(ctx context.Context, arg GetDailyProgressParams) ([]GetDailyProgressRow, error) {
+	rows, err := q.db.Query(ctx, getDailyProgress, arg.UpdatedAt, arg.UpdatedAt_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDailyProgressRow
+	for rows.Next() {
+		var i GetDailyProgressRow
+		if err := rows.Scan(&i.Date, &i.Status, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDocumentByID = `-- name: GetDocumentByID :one
 SELECT id, filename, filepath, classification, created_at, updated_at
 FROM documents
@@ -941,6 +1011,79 @@ func (q *Queries) GetDocumentByID(ctx context.Context, id uuid.UUID) (Document, 
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getDocumentStatusTable = `-- name: GetDocumentStatusTable :many
+SELECT 
+  d.id,
+  d.filename,
+  ds.state AS status,
+  d.created_at,
+  ds.updated_at
+FROM documents d
+JOIN document_status ds ON d.id = ds.document_id
+WHERE ds.state = ANY($1::processing_state[])
+  AND d.created_at BETWEEN $2 AND $3
+  AND ($4::text IS NULL OR d.filename ILIKE '%' || $4 || '%')
+ORDER BY 
+  CASE WHEN $5 = 'name_asc' THEN d.filename END ASC,
+  CASE WHEN $5 = 'name_desc' THEN d.filename END DESC,
+  CASE WHEN $5 = 'date_asc' THEN d.created_at END ASC,
+  CASE WHEN $5 = 'date_desc' THEN d.created_at END DESC,
+  d.created_at DESC
+LIMIT $6 OFFSET $7
+`
+
+type GetDocumentStatusTableParams struct {
+	Column1     []string           `json:"column_1"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	CreatedAt_2 pgtype.Timestamptz `json:"created_at_2"`
+	Column4     string             `json:"column_4"`
+	Column5     interface{}        `json:"column_5"`
+	Limit       int32              `json:"limit"`
+	Offset      int32              `json:"offset"`
+}
+
+type GetDocumentStatusTableRow struct {
+	ID        uuid.UUID          `json:"id"`
+	Filename  string             `json:"filename"`
+	Status    string             `json:"status"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) GetDocumentStatusTable(ctx context.Context, arg GetDocumentStatusTableParams) ([]GetDocumentStatusTableRow, error) {
+	rows, err := q.db.Query(ctx, getDocumentStatusTable,
+		arg.Column1,
+		arg.CreatedAt,
+		arg.CreatedAt_2,
+		arg.Column4,
+		arg.Column5,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetDocumentStatusTableRow
+	for rows.Next() {
+		var i GetDocumentStatusTableRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Filename,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getDocumentStatuses = `-- name: GetDocumentStatuses :many
@@ -1627,6 +1770,46 @@ func (q *Queries) GetSitesByZip(ctx context.Context, zip string) ([]GetSitesByZi
 			&i.Sap,
 			&i.Landlord,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getStatusDistribution = `-- name: GetStatusDistribution :many
+SELECT 
+  ds.state AS status,
+  COUNT(*)::int AS count
+FROM document_status ds
+JOIN documents d ON d.id = ds.document_id
+WHERE ds.updated_at BETWEEN $1 AND $2
+GROUP BY ds.state
+`
+
+type GetStatusDistributionParams struct {
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	UpdatedAt_2 pgtype.Timestamptz `json:"updated_at_2"`
+}
+
+type GetStatusDistributionRow struct {
+	Status string `json:"status"`
+	Count  int32  `json:"count"`
+}
+
+func (q *Queries) GetStatusDistribution(ctx context.Context, arg GetStatusDistributionParams) ([]GetStatusDistributionRow, error) {
+	rows, err := q.db.Query(ctx, getStatusDistribution, arg.UpdatedAt, arg.UpdatedAt_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetStatusDistributionRow
+	for rows.Next() {
+		var i GetStatusDistributionRow
+		if err := rows.Scan(&i.Status, &i.Count); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

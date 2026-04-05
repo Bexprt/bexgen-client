@@ -32,6 +32,35 @@ paths:
         "201":
           description: Document uploaded successfully
 
+  /documents/{document_id}/download:
+    get:
+      summary: Download a document
+      operationId: downloadDocument
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Document file as base64
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [name, content]
+                properties:
+                  name:
+                    type: string
+                    example: example.pdf
+                  content:
+                    type: string
+                    format: byte
+                    description: Base64-encoded file content
+        "404":
+          description: Document not found
+
   /search:
     get:
       parameters:

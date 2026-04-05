@@ -3,8 +3,10 @@ package search
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	cfg "github.com/bexprt/bexgen-client/pkg/config"
 	searchtypes "github.com/bexprt/bexgen-client/pkg/database/search/types"
@@ -24,6 +26,9 @@ type OpenSearchConfig struct {
 	Endpoint string
 	Region   string
 	Index    string
+	Username string
+	Password string
+	IsLocal  bool
 }
 
 func NewClientOpenSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtypes.Index, error) {
@@ -33,24 +38,51 @@ func NewClientOpenSearch(ctx context.Context, cfg *cfg.FactoryConfig) (searchtyp
 		osCfg.Endpoint = cfg.Options["endpoint"].(string)
 		osCfg.Region = cfg.Options["region"].(string)
 		osCfg.Index = cfg.Options["index"].(string)
+
+		if v, ok := cfg.Options["username"]; ok {
+			osCfg.Username = v.(string)
+		}
+		if v, ok := cfg.Options["password"]; ok {
+			osCfg.Password = v.(string)
+		}
+		if v, ok := cfg.Options["isLocal"]; ok {
+			osCfg.IsLocal = v.(bool)
+		}
 	}
 
-	awsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(osCfg.Region))
-	if err != nil {
-		return nil, err
-	}
+	var client *opensearch.Client
+	var err error
 
-	signer, err := requestsigner.NewSignerWithService(awsCfg, "es")
-	if err != nil {
-		return nil, err
-	}
+	if osCfg.IsLocal {
+		client, err = opensearch.NewClient(opensearch.Config{
+			Addresses: []string{osCfg.Endpoint},
+			Username:  osCfg.Username,
+			Password:  osCfg.Password,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		awsCfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(osCfg.Region))
+		if err != nil {
+			return nil, err
+		}
 
-	client, err := opensearch.NewClient(opensearch.Config{
-		Addresses: []string{osCfg.Endpoint},
-		Signer:    signer,
-	})
-	if err != nil {
-		return nil, err
+		signer, err := requestsigner.NewSignerWithService(awsCfg, "es")
+		if err != nil {
+			return nil, err
+		}
+
+		client, err = opensearch.NewClient(opensearch.Config{
+			Addresses: []string{osCfg.Endpoint},
+			Signer:    signer,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &OpenSearchClient{
